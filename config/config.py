@@ -102,7 +102,7 @@ for record in records:
 
     # print(record)
 
-    print("[INFO] : Connecting with pause period set to {} ....".format(current_pause_timer))
+    print("[INFO] : Connecting to {} with pause period set to {} seconds ....".format(record[0], current_pause_timer))
     time.sleep(current_pause_timer)
 
     try:
@@ -211,7 +211,7 @@ for record in records:
         print("[ERROR] : Error while connecting !!!")
         e = sys.exc_info()[0]
         print(e)
-        continue
+        break
 
         
 
