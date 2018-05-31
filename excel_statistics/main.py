@@ -5,21 +5,25 @@ import pandas as pd
 
 # configs & parameters
 
-default_target_file = r'/Users/CCKao/Downloads/test.xls'
+debug_flag = False
+
+default_target_file = r'C:/Users/mojtpm/Downloads/test.xls'
 default_sheet_name = "Sheet1"
 # default_start_row_index = 3
 # default_header_index = 0
 # default_usecols = 21
 
-default_usecols_list = [7, 8, 12, 14]
-default_name = ["弊端類型", "特殊貪瀆案件註記\n（非屬特殊貪瀆案件者，毋庸註記）", "公務員姓名", "性別"]
+default_usecols_list = [0, 7, 8, 12, 14]
+default_name = ["編號", "弊端類型", "特殊貪瀆案件註記\n（非屬特殊貪瀆案件者，毋庸註記）", "公務員姓名", "性別"]
 
+default_effective_offset = 4
 
 raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_list, names = default_name)
 
 # print(raw_df.head())
 
 #print(raw_df["弊端類型"])
+#print(raw_df[default_name[0]])
 #print(raw_df[default_name[1]])
 #print(raw_df[default_name[2]])
 #print(raw_df[default_name[3]])
@@ -30,12 +34,8 @@ raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, hea
 #for index in raw_df.index:
 #    print(index)
 
-#print(raw_df.head(1))
 
-# print(raw_df.iloc[0])
-print(raw_df.axes)
-
-# print(raw_df[5])
+# print(raw_df.axes)
 
 
 
@@ -46,9 +46,9 @@ print(raw_df.axes)
 
 table = {}
 
-with open("type.txt") as type_file:
+with open("type.txt", encoding = 'utf8') as type_file:
     for line in type_file:
-        print("[{0}]".format(line.rstrip()))
+        print("[{}]".format(line.rstrip()))
         table[line.rstrip()] = 0
 
 
@@ -78,18 +78,42 @@ with open("type.txt") as type_file:
 #    print(data)
 
 
-count = 0
-for record in raw_df[default_name[0]]:
-    if str(record) in table:
+
+#------------------------
+# test the format
+
+print(" --- Test Data Print Out:")
+for i in range(0,len(default_name)):
+    print((raw_df[default_name[i]][247]))
+
+print(" --- END")
+
+#------------------------
+
+
+for row_index in range(default_effective_offset, raw_df.index.size):
+    num = raw_df[default_name[0]][row_index]
+    record = raw_df[default_name[1]][row_index]
+
+    if str(record) in table and str(num) != "nan":
         table[str(record)] += 1
     else:
-        if str(record) != "nan":
-            print("{} not found in the table !".format(str(record)))
+        if str(record) != "nan" and str(num) == "nan":
+            print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, str(record)) )
+        elif str(record) not in table and str(record) != "nan":
+            print("[WARNING]: {} at index {} not found in the table !".format(row_index, str(record)))
+        else:
+            print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
 
-print(count)
+
+print(" === Result")
 print(table)
-print(sum(table.values()))
+print(" --- total: {} --- ".format(sum(table.values())))
 
+print(" === Sorted Result:")
 print(sorted(table.items(), key = lambda x: x[1]))
+
+
+# -----
 
 
