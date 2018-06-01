@@ -242,9 +242,15 @@ def parse_template(template_string):
     line_count = 0
     for line in template_string:
 
+        if not line.strip():
+            continue
+
+        if line_count == 0 and line[0] != '1':
+            continue
+
         line_count += 1
 
-        print(line.rstrip())
+        print("line: [{}]".format(line.rstrip()))
 
         if line[0] == '■':
             selected_flag = True
