@@ -186,13 +186,14 @@ def create_output_dataform(row_file, col_file):
     
     print(out_df)
 
+
     return out_df
     
 
     
 
 
-
+# KaoCC: the parameters should be changed in the future patches..
 def case_analysis(reference_df, out_df, row_file, col_file):
 
     row_set = set()
@@ -232,6 +233,40 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    print(out_df_sum)
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+
+    print(out_df_sum_row)
+
+
+
+    print(out_df_sum_row)
+    
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+
+
+    print(out_df)
+
+
+    return out_df
+
+
+    # out_df["total"] = out_df[col_list].sum(axis = 1)
+    # out_df.assign()
 
 
 
@@ -302,7 +337,7 @@ calculate_people_records(fill_df)
 
 out_df = create_output_dataform("case_row.txt", "level_col.txt")
 
-case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
+out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 
 
 # raw_df.to_excel("raw.xls")
