@@ -236,7 +236,40 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+def parse_template(template_string):
 
+    selected_flag = False
+    line_count = 0
+    for line in template_string:
+
+        line_count += 1
+
+        print(line.rstrip())
+
+        if line[0] == '■':
+            selected_flag = True
+            break
+    
+    if selected_flag is True:
+
+        if line_count <= 7:
+            return 1
+        elif line_count == 8:
+            return 2
+        elif line_count >= 9 and line_count <= 11:
+            return 3
+        elif line_count == 12:
+            return 4
+        elif line_count == 13 :
+            return 5
+        else:
+            return -1   # Error
+    else:
+        return -1
+                
+
+
+    
 
 
 
@@ -268,5 +301,12 @@ out_df = create_output_dataform("case_row.txt", "level_col.txt")
 
 case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 
+#fill_df.to_excel("fill.xls")
+#out_df.to_excel("tmp.xls")
+
 
 print(out_df)
+
+
+with open("template.txt",  encoding = 'utf8') as template_file:
+    print(parse_template(template_file))
