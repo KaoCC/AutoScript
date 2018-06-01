@@ -242,10 +242,7 @@ def parse_template(template_string):
     line_count = 0
     for line in template_string:
 
-        if not line.strip():
-            continue
-
-        if line_count == 0 and line[0] != '1':
+        if not line.strip() or (line_count == 0 and line[0] != '1'):
             continue
 
         line_count += 1
