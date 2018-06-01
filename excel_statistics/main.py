@@ -5,7 +5,7 @@ import pandas as pd
 
 # configs & parameters
 
-debug_flag = False
+debug_flag = True
 
 default_target_file = r'C:/Users/mojtpm/Downloads/test.xls'
 default_sheet_name = "Sheet1"
@@ -86,7 +86,8 @@ def calculate_case_records(reference_df):
 
     with open("type.txt", encoding = 'utf8') as type_file:
         for line in type_file:
-            print("[{}]".format(line.rstrip()))
+            if debug_flag is True:
+                print("[{}]".format(line.rstrip()))
             table[line.rstrip()] = 0
 
     for row_index in range(default_effective_offset, reference_df.index.size):
@@ -124,11 +125,12 @@ def calculate_people_records(reference_df):
 
 
     for row_index in range(default_effective_offset, reference_df.index.size):
+        num = reference_df[default_name[0]][row_index]
         name = reference_df[default_name[3]][row_index]
         gender = reference_df[default_name[4]][row_index]
         level = reference_df[default_name[5]][row_index]
 
-        if isinstance(level, int) and int(level) in level_table and str(gender) in gender_table and str(name) != "nan":
+        if isinstance(num, int) and isinstance(level, int) and int(level) in level_table and str(gender) in gender_table and str(name) != "nan":
             # print("{}, {}, {}".format(row_index, str(name), int(level)))
             level_table[int(level)] += 1
             gender_table[str(gender)] += 1
@@ -158,7 +160,79 @@ def calculate_people_records(reference_df):
     
 
 
+
+def create_output_dataform(row_file, col_file):
+
+    row_labels = []
+    col_labels = []
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            if label.strip():
+                row_labels.append(label.rstrip())
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+            if label.strip():
+                col_labels.append(label.rstrip())
+
+    # create df
+
+    out_df = pd.DataFrame(index = row_labels, columns = col_labels)
     
+    print(out_df)
+
+    return out_df
+    
+
+    
+
+
+
+def case_analysis(reference_df, out_df, row_file, col_file):
+
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            
+            if label.strip():
+                row_set.add(label.rstrip())
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+
+            if label.strip():
+                col_set.add(label.rstrip())
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+        case = reference_df[default_name[1]][row_index]
+        level = reference_df[default_name[5]][row_index]
+
+
+        if str(case) != "nan" and str(level) != "nan" and str(case) in row_set and str(level) in col_set:
+
+
+            if str(out_df.at[str(case), str(level)]) == "nan":
+                out_df.at[str(case), str(level)] = 1
+            else:
+                out_df.at[str(case), str(level)] += 1
+
+        else:
+            print("Possible Error found at index {} with data: {} , {}".format(row_index, str(case), str(level)))
+
+
+
+
 
 
 
@@ -181,6 +255,18 @@ calculate_case_records(fill_df)
 calculate_people_records(fill_df)
 
 
-print_row_data(fill_df, 2)
 
-print_row_data(fill_df, 153)
+
+#print_row_data(fill_df, 0)
+#print_row_data(fill_df, 1)
+#print_row_data(fill_df, 2)
+
+#print_row_data(fill_df, 153)
+
+
+out_df = create_output_dataform("case_row.txt", "level_col.txt")
+
+case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
+
+
+print(out_df)
