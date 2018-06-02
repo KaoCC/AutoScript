@@ -240,7 +240,8 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
     out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
 
-    print(out_df_sum)
+    # print(out_df_sum)
+
 
     out_df_sum_row = out_df_sum.T
 
@@ -250,13 +251,20 @@ def case_analysis(reference_df, out_df, row_file, col_file):
     out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
 
 
-    print(out_df_sum_row)
+    # print(out_df_sum_row)
+
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
 
 
 
-    print(out_df_sum_row)
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
     
     out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
 
 
     print(out_df)
