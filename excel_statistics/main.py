@@ -27,7 +27,6 @@ raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, hea
 
 # print(raw_df.head())
 
-#print(raw_df["弊端類型"])
 #print(raw_df[default_name[0]])
 #print(raw_df[default_name[1]])
 #print(raw_df[default_name[2]])
@@ -36,12 +35,11 @@ raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, hea
 # print(raw_df.dtypes)
 # print(raw_df.index)
 
-#for index in raw_df.index:
-#    print(index)
 
 
 print(raw_df.axes)
 
+# print(raw_df)
 
 
 # ----------------------
@@ -53,11 +51,11 @@ print(raw_df.axes)
 # test the format
 
 def print_row_data(reference_df, row_index):
-    print(" --- Row Data with index {} Print Out: --- ".format(row_index))
+    print("\n ------ Row Data with index {} Print Out: ------ \n".format(row_index))
     for i in range(0,len(default_name)):
         print((reference_df[default_name[i]][row_index]))
 
-    print(" --- END --- ")
+    print("\n ------ END ------ \n")
 
 
 
@@ -129,19 +127,26 @@ def calculate_people_records(reference_df):
 
 
     for row_index in range(default_effective_offset, reference_df.index.size):
-        num = reference_df[default_name[0]][row_index]
-        name = reference_df[default_name[3]][row_index]
-        gender = reference_df[default_name[4]][row_index]
-        level = reference_df[default_name[6]][row_index]
 
-        if isinstance(num, int) and isinstance(level, int) and int(level) in level_table and str(gender) in gender_table and str(name) != "nan":
-            # print("{}, {}, {}".format(row_index, str(name), int(level)))
-            level_table[int(level)] += 1
-            gender_table[str(gender)] += 1
-        elif str(name) == "nan" and str(level) == "nan" and str(gender) == "nan":
-            print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
-        else:
-            print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+        try :
+            num = int(reference_df[default_name[0]][row_index])
+            name = str(reference_df[default_name[3]][row_index])
+            gender = str(reference_df[default_name[4]][row_index])
+            level = int(reference_df[default_name[6]][row_index])
+
+            if num > 0 and level in level_table and gender in gender_table and name != "nan":
+                # print("{}, {}, {}".format(row_index, str(name), int(level)))
+                level_table[level] += 1
+                gender_table[gender] += 1
+            elif name == "nan" and str(level) == "nan" and gender == "nan":
+                print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
+            else:
+                print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+        except ValueError:
+            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print_row_data(reference_df, row_index)
+
+
 
 
     print(" === People Result")
@@ -276,11 +281,6 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
 
     return out_df
-
-
-    # out_df["total"] = out_df[col_list].sum(axis = 1)
-    # out_df.assign()
-
 
 
 
@@ -420,21 +420,21 @@ def is_found_in(regex_list, test_str):
 # main logic here
 
 
-# print_row_data(raw_df, 11)
-
 
 fill_df = generate_complex_df(raw_df)
 
 # print(fill_df.head())
 
+print(" ==== calculate_case_records ===== ")
 calculate_case_records(raw_df)
 #calculate_people_records(raw_df)
+
 
 calculate_case_records(fill_df)
 calculate_people_records(fill_df)
 
 
-
+print(" ==== Case Analysis ===== ")
 out_df = create_output_dataform("case_row.txt", "level_col.txt")
 out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 
@@ -447,8 +447,7 @@ out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 print(out_df)
 
 
-
-# test agency
+# read agency lists
 
 agencies_list = []
 central_admin_regex_list = create_agency_regex_list("central_admin.txt")
@@ -465,6 +464,8 @@ result_df = extract_special_case_info(result)
 
 print(result_df)
 
+
+# output to excel
 
 out_df.to_excel("out.xls")
 result_df.to_excel("result.xls")
