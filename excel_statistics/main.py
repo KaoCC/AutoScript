@@ -8,6 +8,7 @@ import pandas as pd
 
 debug_flag = False
 
+
 # KaoCC: change this to the actual location
 default_target_file = r'C:/Users/mojtpm/Downloads/test.xls'
 default_sheet_name = "Sheet1"
@@ -94,19 +95,20 @@ def calculate_case_records(reference_df):
 
     for row_index in range(default_effective_offset, reference_df.index.size):
         num = reference_df[default_name[0]][row_index]
-        record = reference_df[default_name[1]][row_index]
+        record = str(reference_df[default_name[1]][row_index])
 
-        if str(record) in table and str(num) != "nan":
-            table[str(record)] += 1
+        if record in table and str(num) != "nan":
+            table[record] += 1
         else:
-            if str(record) != "nan" and str(num) == "nan":
-                print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, str(record)) )
-            elif str(record) == "nan" and str(num) == "nan":
+            if record != "nan" and str(num) == "nan":
+                print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
+            elif record == "nan" and str(num) == "nan":
                 print("[WARNING]: Possibly belong to the prevoius case at index {}".format(row_index) )
-            elif str(record) not in table and str(record) != "nan":
-                print("[WARNING]: {} at index {} not found in the table !".format(row_index, str(record)))
+            elif record not in table and record != "nan":
+                print("[WARNING]: {} at index {} not found in the table !".format(row_index, record))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+                print_row_data(reference_df, row_index)
 
 
     print(" === Case Result")
@@ -129,19 +131,20 @@ def calculate_people_records(reference_df):
     for row_index in range(default_effective_offset, reference_df.index.size):
 
         try :
-            num = int(reference_df[default_name[0]][row_index])
+            num = reference_df[default_name[0]][row_index]
             name = str(reference_df[default_name[3]][row_index])
             gender = str(reference_df[default_name[4]][row_index])
             level = int(reference_df[default_name[6]][row_index])
 
-            if num > 0 and level in level_table and gender in gender_table and name != "nan":
+            if str(num) != "nan" and level in level_table and gender in gender_table and name != "nan":
                 # print("{}, {}, {}".format(row_index, str(name), int(level)))
                 level_table[level] += 1
                 gender_table[gender] += 1
-            elif name == "nan" and str(level) == "nan" and gender == "nan":
+            elif name == "nan" and str(reference_df[default_name[6]][row_index]) == "nan" and gender == "nan":
                 print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
             else:
                 print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+                print_row_data(reference_df, row_index)
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, row_index)
