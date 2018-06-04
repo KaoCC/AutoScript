@@ -1,21 +1,25 @@
 
 
 import os
+import re
 import pandas as pd
 
 # configs & parameters
 
-debug_flag = True
+debug_flag = False
 
+# KaoCC: change this to the actual location
 default_target_file = r'C:/Users/mojtpm/Downloads/test.xls'
 default_sheet_name = "Sheet1"
+
+# --- unused ---
 # default_start_row_index = 3
 # default_header_index = 0
 # default_usecols = 21
 
 default_non_na_count = 2
-default_usecols_list = [0, 7, 8, 12, 14, 17]
-default_name = ["編號", "弊端類型", "特殊貪瀆案件註記\n（非屬特殊貪瀆案件者，毋庸註記）", "公務員姓名", "性別", "職務層級\n1.簡任(相當)\n2.薦任(相當)\n3.委任(相當)\n4.約聘僱等\n5.其他"]
+default_usecols_list = [0, 7, 8, 12, 14, 16, 17]
+default_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
 
 default_effective_offset = 0
 
@@ -128,7 +132,7 @@ def calculate_people_records(reference_df):
         num = reference_df[default_name[0]][row_index]
         name = reference_df[default_name[3]][row_index]
         gender = reference_df[default_name[4]][row_index]
-        level = reference_df[default_name[5]][row_index]
+        level = reference_df[default_name[6]][row_index]
 
         if isinstance(num, int) and isinstance(level, int) and int(level) in level_table and str(gender) in gender_table and str(name) != "nan":
             # print("{}, {}, {}".format(row_index, str(name), int(level)))
@@ -169,23 +173,23 @@ def create_output_dataform(row_file, col_file):
     with open(row_file, encoding = 'utf8') as row_label_file:
         for label in row_label_file:
             if debug_flag is True:
-                print("row label: [{}]".format(label.rstrip()))
-            if label.strip():
+                print("row label read: [{}]".format(label.rstrip()))
+            if label.strip() and label.strip(u"\ufeff").strip():
                 row_labels.append(label.rstrip())
 
     with open(col_file, encoding = 'utf8') as col_label_file:
         for label in col_label_file:
             if debug_flag is True:
-                print("col label: [{}]".format(label.rstrip()))
-            if label.strip():
+                print("col label read: [{}]".format(label.rstrip()))
+            if label.strip() and label.strip(u"\ufeff").strip():
                 col_labels.append(label.rstrip())
 
     # create df
 
     out_df = pd.DataFrame(index = row_labels, columns = col_labels)
     
-    print(out_df)
-
+    if debug_flag is True:
+        print(out_df)
 
     return out_df
     
@@ -196,6 +200,7 @@ def create_output_dataform(row_file, col_file):
 # KaoCC: the parameters should be changed in the future patches..
 def case_analysis(reference_df, out_df, row_file, col_file):
 
+    # these should be merged into "create_output_dataform" 
     row_set = set()
     col_set = set()
 
@@ -204,20 +209,20 @@ def case_analysis(reference_df, out_df, row_file, col_file):
             if debug_flag is True:
                 print("row label: [{}]".format(label.rstrip()))
             
-            if label.strip():
-                row_set.add(label.rstrip())
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
 
     with open(col_file, encoding = 'utf8') as col_label_file:
         for label in col_label_file:
             if debug_flag is True:
                 print("col label: [{}]".format(label.rstrip()))
 
-            if label.strip():
-                col_set.add(label.rstrip())
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
 
     for row_index in range(default_effective_offset, reference_df.index.size):
         case = reference_df[default_name[1]][row_index]
-        level = reference_df[default_name[5]][row_index]
+        level = reference_df[default_name[6]][row_index]
 
 
         if str(case) != "nan" and str(level) != "nan" and str(case) in row_set and str(level) in col_set:
@@ -259,7 +264,6 @@ def case_analysis(reference_df, out_df, row_file, col_file):
     out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
 
 
-
     # print(out_df_percentage)
     # print(out_df_sum_row)
     
@@ -284,16 +288,17 @@ def parse_template(template_string):
 
     selected_flag = False
     line_count = 0
-    for line in template_string:
+    for line in template_string.splitlines():
 
         if not line.strip() or (line_count == 0 and line[0] != '1'):
             continue
 
         line_count += 1
 
-        print("line: [{}]".format(line.rstrip()))
+        if debug_flag is True:
+            print("line: [{}]".format(line.rstrip()))
 
-        if line[0] == '■':
+        if line[0] == u'■' or line[0] == u'▓':      # check the special char ?!?
             selected_flag = True
             break
     
@@ -310,13 +315,105 @@ def parse_template(template_string):
         elif line_count == 13 :
             return 5
         else:
-            return -1   # Error
+            print("[ERROR]: Error while parsing string: {}".format(template_string))
+            return -2   # Error
     else:
         return -1
                 
 
 
+
+def extract_agency_info(agencies_regex_list, target_df):
+
+    agency_column_name = default_name[5]
+
+    insert_df = pd.DataFrame(data = target_df[agency_column_name])
+
+    # print(insert_df)
+
+    for row_index in range(default_effective_offset, target_df[agency_column_name].index.size):
+
+        # print(target_df[row_index])
+
+        error_flag = True
+        for i in range(0, len(agencies_regex_list)):
+            input_str = str(target_df[agency_column_name][row_index])
+            found_flag = is_found_in(agencies_list[i], input_str)
+
+            if found_flag is True:
+                if debug_flag is True:
+                    print("Agency [{}] at index {} Found in {}".format(input_str, row_index, i))
+
+                error_flag = False
+                insert_df[agency_column_name][row_index] = (i + 1)
+
+                break
+
+        if error_flag is True:
+            print("[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
+            insert_df[agency_column_name][row_index] = -1
+
     
+    
+    # print(insert_df)
+
+    target_df["Agency"] = insert_df
+
+    return target_df
+
+
+def extract_special_case_info(target_df):
+
+    special_case_column_name = default_name[2]
+
+    insert_df = pd.DataFrame(data = target_df[special_case_column_name])
+
+    for row_index in range(default_effective_offset, target_df[special_case_column_name].index.size):
+        input_str = str(target_df[special_case_column_name][row_index])
+
+        # print("[{}]".format(input_str))
+
+        insert_df[special_case_column_name][row_index] = parse_template(input_str)
+        
+        if debug_flag is True:
+            print("Special Case at index {} is marked as {}".format(row_index, insert_df[special_case_column_name][row_index]))
+
+
+    target_df["Special"] = insert_df
+
+    return target_df 
+
+
+
+def create_agency_regex_list(agency_file):
+    agency_regex_list = []
+    with open(agency_file, encoding = 'utf8') as agencies:
+        for line in agencies:
+            if debug_flag is True:
+                print("regex: {}".format(line.rstrip()))
+
+            if line.strip() and line.strip(u"\ufeff").strip(): 
+                agency_regex_list.append(re.compile(line.strip().rstrip().strip(u"\ufeff")))
+
+    if debug_flag is True:
+        print(agency_regex_list)
+
+    return agency_regex_list
+
+
+
+def is_found_in(regex_list, test_str):
+
+    # print("test_str: [{}]".format(test_str))
+
+    for regex in regex_list:
+        trial = re.search(regex, test_str)
+        if trial is not None:
+            return True
+    
+    return False
+
+
 
 
 
@@ -328,6 +425,8 @@ def parse_template(template_string):
 
 fill_df = generate_complex_df(raw_df)
 
+# print(fill_df.head())
+
 calculate_case_records(raw_df)
 #calculate_people_records(raw_df)
 
@@ -336,16 +435,7 @@ calculate_people_records(fill_df)
 
 
 
-
-#print_row_data(fill_df, 0)
-#print_row_data(fill_df, 1)
-#print_row_data(fill_df, 2)
-
-#print_row_data(fill_df, 153)
-
-
 out_df = create_output_dataform("case_row.txt", "level_col.txt")
-
 out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 
 
@@ -357,5 +447,25 @@ out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
 print(out_df)
 
 
-with open("template.txt",  encoding = 'utf8') as template_file:
-    print(parse_template(template_file))
+
+# test agency
+
+agencies_list = []
+central_admin_regex_list = create_agency_regex_list("central_admin.txt")
+local_admin_regex_list = create_agency_regex_list("local_admin.txt")
+central_council_regex_list = create_agency_regex_list("central_council.txt")
+local_council_regex_list = create_agency_regex_list("local_council.txt")
+
+
+agencies_list = [central_admin_regex_list, local_admin_regex_list, central_council_regex_list, local_council_regex_list]
+
+    
+result = extract_agency_info(agencies_list, fill_df)
+result_df = extract_special_case_info(result)
+
+print(result_df)
+
+
+out_df.to_excel("out.xls")
+result_df.to_excel("result.xls")
+
