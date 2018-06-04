@@ -49,7 +49,7 @@ print(raw_df.axes)
 # test the format
 
 def print_row_data(reference_df, row_index):
-    print(" --- Row Data Print Out: --- ")
+    print(" --- Row Data with index {} Print Out: --- ".format(row_index))
     for i in range(0,len(default_name)):
         print((reference_df[default_name[i]][row_index]))
 
@@ -267,7 +267,8 @@ def case_analysis(reference_df, out_df, row_file, col_file):
     out_df = out_df.append(out_df_percentage, verify_integrity  = True)
 
 
-    print(out_df)
+    if debug_flag is True:
+        print(out_df)
 
 
     return out_df
