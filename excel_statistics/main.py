@@ -226,20 +226,27 @@ def case_analysis(reference_df, out_df, row_file, col_file):
                 col_set.add(label.strip().rstrip().strip(u"\ufeff"))
 
     for row_index in range(default_effective_offset, reference_df.index.size):
-        case = reference_df[default_name[1]][row_index]
-        level = reference_df[default_name[6]][row_index]
+
+        try:
+            case = str(reference_df[default_name[1]][row_index])
+            level = str(int(reference_df[default_name[6]][row_index]))
 
 
-        if str(case) != "nan" and str(level) != "nan" and str(case) in row_set and str(level) in col_set:
+            if case != "nan" and level != "nan" and case in row_set and level in col_set:
 
 
-            if str(out_df.at[str(case), str(level)]) == "nan":
-                out_df.at[str(case), str(level)] = 1
+                if str(out_df.at[case, level]) == "nan":
+                    out_df.at[case, level] = 1
+                else:
+                    out_df.at[case, level] += 1
+
             else:
-                out_df.at[str(case), str(level)] += 1
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, case, level))
+                print_row_data(reference_df, row_index)
 
-        else:
-            print("Possible Error found at index {} with data: {} , {}".format(row_index, str(case), str(level)))
+        except ValueError:
+            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print_row_data(reference_df, row_index)
 
 
 
