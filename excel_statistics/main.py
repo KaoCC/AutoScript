@@ -19,12 +19,15 @@ default_sheet_name = "Sheet1"
 # default_usecols = 21
 
 default_non_na_count = 2
-default_usecols_list = [0, 7, 8, 12, 14, 16, 17]
+default_usecols_case_list = [0, 7, 8, 12, 14, 16, 17]
+
+default_usecols_law_list = [18, 19, 20]
+
 default_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
 
 default_effective_offset = 0
 
-raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_list, names = default_name)
+raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_name)
 
 # print(raw_df.head())
 
@@ -480,3 +483,8 @@ print(result_df)
 out_df.to_excel("out.xls")
 result_df.to_excel("result.xls")
 
+
+# --- debug ---
+#print_row_data(raw_df, 213)
+#print_row_data(raw_df, 214)
+#print_row_data(raw_df, 215)
