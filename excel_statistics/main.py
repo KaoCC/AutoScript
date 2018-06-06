@@ -500,26 +500,62 @@ print(law_df.axes)
 corruption_law_regex_inst = re.compile(corruption_law_regex)
 
 
+person_column_name = default_law_name[0]
+level_column_name = default_law_name[1]
 corruption_law_column_name = default_law_name[2]
+criminal_law_column_name = default_law_name[3]
+other_law_column_name = default_law_name[4]
+
 for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
-    print(law_df[corruption_law_column_name][row_index])
 
+    if str(law_df[level_column_name][row_index]) == "nan":
+        print("index {} is null ... skip".format(row_index))
+        print_row_data(law_df, default_law_name, row_index)
+        continue
+    else:
+        print("Person: {} level: {}".format(law_df[person_column_name][row_index],str(law_df[level_column_name][row_index])))
 
-    law_match = re.match(corruption_law_regex_inst, str(law_df[corruption_law_column_name][row_index]))
+    print("index: {}, input string:[{}]".format(row_index, str(law_df[corruption_law_column_name][row_index])))
+
+    
+
+    law_match = re.search(corruption_law_regex_inst, str(law_df[corruption_law_column_name][row_index]))
 
     if law_match is not None:
         print("{}-{}-{}".format(law_match[1], law_match[2], law_match[3]))
     else:
         print("{} has no match".format(str(law_df[corruption_law_column_name][row_index])))
 
+    
+
 
 
     
-
-    
+print(" -------------- End of the Story --------------")
 
 
 
 # --- debug ---
 
-# print_row_data(raw_df, default_case_name, 244)
+
+
+print_row_data(raw_df, default_case_name, 241)
+print_row_data(raw_df, default_case_name, 242)
+print_row_data(raw_df, default_case_name, 243)
+print_row_data(raw_df, default_case_name, 244)
+
+print(fill_df.axes)
+
+print_row_data(fill_df, default_case_name, 241)
+print_row_data(fill_df, default_case_name, 242)
+print_row_data(fill_df, default_case_name, 243)
+print_row_data(fill_df, default_case_name, 244)
+# print_row_data(fill_df, default_case_name, 245)
+
+print(law_df.axes)
+
+print_row_data(law_df, default_law_name, 241)
+print_row_data(law_df, default_law_name, 242)
+print_row_data(law_df, default_law_name, 243)
+print_row_data(law_df, default_law_name, 244)
+print_row_data(law_df, default_law_name, 245)
