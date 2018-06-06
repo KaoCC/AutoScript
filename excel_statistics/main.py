@@ -58,10 +58,10 @@ print(raw_df.axes)
 #------------------------
 # test the format
 
-def print_row_data(reference_df, row_index):
+def print_row_data(reference_df, col_name_list, row_index):
     print("\n ------ Row Data with index {} Print Out: ------ \n".format(row_index))
-    for i in range(0,len(default_case_name)):
-        print((reference_df[default_case_name[i]][row_index]))
+    for i in range(0, len(col_name_list)):
+        print((reference_df[col_name_list[i]][row_index]))
 
     print("\n ------ END ------ \n")
 
@@ -115,7 +115,7 @@ def calculate_case_records(reference_df):
                 print("[WARNING]: {} at index {} not found in the table !".format(row_index, record))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name, row_index)
 
 
     print(" === Case Result")
@@ -154,7 +154,7 @@ def calculate_people_records(reference_df):
                 print_row_data(reference_df, row_index)
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
-            print_row_data(reference_df, row_index)
+            print_row_data(reference_df, default_case_name, row_index)
 
 
 
@@ -252,11 +252,11 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
             else:
                 print("Possible Error found at index {} with data: {}, {}".format(row_index, case, level))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
-            print_row_data(reference_df, row_index)
+            print_row_data(reference_df, default_case_name, row_index)
 
 
 
@@ -521,6 +521,5 @@ for row_index in range(default_effective_offset, law_df[corruption_law_column_na
 
 
 # --- debug ---
-#print_row_data(raw_df, 213)
-#print_row_data(raw_df, 214)
-#print_row_data(raw_df, 215)
+
+# print_row_data(raw_df, default_case_name, 244)
