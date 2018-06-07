@@ -151,7 +151,7 @@ def calculate_people_records(reference_df):
                 print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
             else:
                 print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name,row_index)
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
