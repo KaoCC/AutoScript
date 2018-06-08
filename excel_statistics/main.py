@@ -26,7 +26,9 @@ default_usecols_law_list = [12, 17, 18, 19, 20]
 default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "刑法瀆職罪章", "其他"]
 
 
-corruption_law_regex = "第(\d+)條第(\d+)項第(\d+)款"
+corruption_law_regex = r"第(\d+)條第(\d+)項第(\d+)款"
+criminal_law_regex = r"[刑法]?第(\d+)"
+other_law_regex = r"國安"
 
 
 default_effective_offset = 0
@@ -489,22 +491,70 @@ result_df.to_excel("result.xls")
 
 
 
+# law matching !
+
+def match_laws(law_df, row_index, regex_list, column_name_list):
+
+    for i in range(0, len(column_name_list)):
+
+        print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
+
+
+        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        if law_match is not None:
+
+
+            result = ""
+            for group in law_match.groups():
+                result = result + group
+
+            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
+            print(result)
+            return result
+
+        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
+            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+            print_row_data(law_df, default_law_name, row_index)
+        else:
+            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+
+    
+    return "Other"
+
+
+
+
+
 
 # law analysis test
 
 law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
+
+law_df.dropna(thresh = default_non_na_count, inplace = True)
+law_df.reset_index(drop = True, inplace = True)
+
 print(law_df)
 print(law_df.axes)
 
 
 corruption_law_regex_inst = re.compile(corruption_law_regex)
+criminal_law_regex_inst = re.compile(criminal_law_regex)
+other_law_regex_inst = re.compile(other_law_regex)
+
+
+
+law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
 
 
 person_column_name = default_law_name[0]
 level_column_name = default_law_name[1]
+
 corruption_law_column_name = default_law_name[2]
 criminal_law_column_name = default_law_name[3]
 other_law_column_name = default_law_name[4]
+
+law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
 
 for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
@@ -515,16 +565,19 @@ for row_index in range(default_effective_offset, law_df[corruption_law_column_na
     else:
         print("Person: {} level: {}".format(law_df[person_column_name][row_index],str(law_df[level_column_name][row_index])))
 
-    print("index: {}, input string:[{}]".format(row_index, str(law_df[corruption_law_column_name][row_index])))
+
+
+    law_string = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+    print("Result law string: {}".format(law_string))
+        
+
+    
+    # law_match must be None ...
+
 
     
 
-    law_match = re.search(corruption_law_regex_inst, str(law_df[corruption_law_column_name][row_index]))
-
-    if law_match is not None:
-        print("{}-{}-{}".format(law_match[1], law_match[2], law_match[3]))
-    else:
-        print("{} has no match".format(str(law_df[corruption_law_column_name][row_index])))
+    
 
     
 
@@ -539,23 +592,24 @@ print(" -------------- End of the Story --------------")
 
 
 
-print_row_data(raw_df, default_case_name, 241)
-print_row_data(raw_df, default_case_name, 242)
-print_row_data(raw_df, default_case_name, 243)
-print_row_data(raw_df, default_case_name, 244)
+# print_row_data(raw_df, default_case_name, 241)
+# print_row_data(raw_df, default_case_name, 242)
+# print_row_data(raw_df, default_case_name, 243)
+# print_row_data(raw_df, default_case_name, 244)
 
 print(fill_df.axes)
 
-print_row_data(fill_df, default_case_name, 241)
-print_row_data(fill_df, default_case_name, 242)
+#print_row_data(fill_df, default_case_name, 241)
+#print_row_data(fill_df, default_case_name, 242)
 print_row_data(fill_df, default_case_name, 243)
 print_row_data(fill_df, default_case_name, 244)
 # print_row_data(fill_df, default_case_name, 245)
 
 print(law_df.axes)
 
-print_row_data(law_df, default_law_name, 241)
-print_row_data(law_df, default_law_name, 242)
+# print_row_data(law_df, default_law_name, 241)
+# print_row_data(law_df, default_law_name, 242)
 print_row_data(law_df, default_law_name, 243)
 print_row_data(law_df, default_law_name, 244)
-print_row_data(law_df, default_law_name, 245)
+
+
