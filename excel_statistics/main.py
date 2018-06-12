@@ -435,6 +435,11 @@ def is_found_in(regex_list, test_str):
 
 
 
+def agency_analysis(reference_df, out_df):
+    return out_df
+
+
+
 
 # main logic here
 
@@ -482,6 +487,12 @@ result = extract_agency_info(agencies_list, fill_df)
 result_df = extract_special_case_info(result)
 
 print(result_df)
+
+
+
+
+
+
 
 
 # output to excel
