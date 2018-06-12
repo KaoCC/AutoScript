@@ -495,32 +495,46 @@ result_df.to_excel("result.xls")
 
 def match_laws(law_df, row_index, regex_list, column_name_list):
 
+    error_flag = False
+
     for i in range(0, len(column_name_list)):
 
-        print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
+        if debug_flag is True or True:      # tmp
+            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
 
 
+        # kaocc: we should find all the matches here ..
         law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
 
         if law_match is not None:
 
+            # print(law_match)
 
             result = ""
             for group in law_match.groups():
-                result = result + group
+                # print(group)
+                
+                if group is not None:
+                    result = result + group
+                else:
+                    result = result + "0"
 
             # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
-            print(result)
+            # print(result)
             return result
 
         elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
             print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
             print_row_data(law_df, default_law_name, row_index)
+            error_flag = True
         else:
             print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
 
     
-    return "Other"
+    if error_flag:
+        return "Error"
+    else:
+        return "Other"
 
 
 
