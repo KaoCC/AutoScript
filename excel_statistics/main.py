@@ -19,19 +19,28 @@ default_sheet_name = "Sheet1"
 # default_usecols = 21
 
 default_non_na_count = 2
-default_usecols_list = [0, 7, 8, 12, 14, 16, 17]
-default_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
+default_usecols_case_list = [0, 7, 8, 12, 14, 16, 17]
+default_case_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
+
+default_usecols_law_list = [12, 17, 18, 19, 20]
+default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "刑法瀆職罪章", "其他"]
+
+
+corruption_law_regex = r"第(\d+)\s*條(?:第(\d+)\s*項)?(?:第(\d+)\s*款)?"
+criminal_law_regex = r"第(\d+)(?:條)?"
+other_law_regex = r"第(\d+)"
+
 
 default_effective_offset = 0
 
-raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_list, names = default_name)
+raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
 
 # print(raw_df.head())
 
-#print(raw_df[default_name[0]])
-#print(raw_df[default_name[1]])
-#print(raw_df[default_name[2]])
-#print(raw_df[default_name[3]])
+#print(raw_df[default_case_name[0]])
+#print(raw_df[default_case_name[1]])
+#print(raw_df[default_case_name[2]])
+#print(raw_df[default_case_name[3]])
 
 # print(raw_df.dtypes)
 # print(raw_df.index)
@@ -51,10 +60,10 @@ print(raw_df.axes)
 #------------------------
 # test the format
 
-def print_row_data(reference_df, row_index):
+def print_row_data(reference_df, col_name_list, row_index):
     print("\n ------ Row Data with index {} Print Out: ------ \n".format(row_index))
-    for i in range(0,len(default_name)):
-        print((reference_df[default_name[i]][row_index]))
+    for i in range(0, len(col_name_list)):
+        print((reference_df[col_name_list[i]][row_index]))
 
     print("\n ------ END ------ \n")
 
@@ -94,8 +103,8 @@ def calculate_case_records(reference_df):
             table[line.rstrip()] = 0
 
     for row_index in range(default_effective_offset, reference_df.index.size):
-        num = reference_df[default_name[0]][row_index]
-        record = str(reference_df[default_name[1]][row_index])
+        num = reference_df[default_case_name[0]][row_index]
+        record = str(reference_df[default_case_name[1]][row_index])
 
         if record in table and str(num) != "nan":
             table[record] += 1
@@ -108,7 +117,7 @@ def calculate_case_records(reference_df):
                 print("[WARNING]: {} at index {} not found in the table !".format(row_index, record))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name, row_index)
 
 
     print(" === Case Result")
@@ -131,23 +140,23 @@ def calculate_people_records(reference_df):
     for row_index in range(default_effective_offset, reference_df.index.size):
 
         try :
-            num = reference_df[default_name[0]][row_index]
-            name = str(reference_df[default_name[3]][row_index])
-            gender = str(reference_df[default_name[4]][row_index])
-            level = int(reference_df[default_name[6]][row_index])
+            num = reference_df[default_case_name[0]][row_index]
+            name = str(reference_df[default_case_name[3]][row_index])
+            gender = str(reference_df[default_case_name[4]][row_index])
+            level = int(reference_df[default_case_name[6]][row_index])
 
             if str(num) != "nan" and level in level_table and gender in gender_table and name != "nan":
                 # print("{}, {}, {}".format(row_index, str(name), int(level)))
                 level_table[level] += 1
                 gender_table[gender] += 1
-            elif name == "nan" and str(reference_df[default_name[6]][row_index]) == "nan" and gender == "nan":
+            elif name == "nan" and str(reference_df[default_case_name[6]][row_index]) == "nan" and gender == "nan":
                 print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
             else:
                 print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name,row_index)
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
-            print_row_data(reference_df, row_index)
+            print_row_data(reference_df, default_case_name, row_index)
 
 
 
@@ -231,8 +240,8 @@ def case_analysis(reference_df, out_df, row_file, col_file):
     for row_index in range(default_effective_offset, reference_df.index.size):
 
         try:
-            case = str(reference_df[default_name[1]][row_index])
-            level = str(int(reference_df[default_name[6]][row_index]))
+            case = str(reference_df[default_case_name[1]][row_index])
+            level = str(int(reference_df[default_case_name[6]][row_index]))
 
 
             if case != "nan" and level != "nan" and case in row_set and level in col_set:
@@ -245,11 +254,11 @@ def case_analysis(reference_df, out_df, row_file, col_file):
 
             else:
                 print("Possible Error found at index {} with data: {}, {}".format(row_index, case, level))
-                print_row_data(reference_df, row_index)
+                print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
             print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
-            print_row_data(reference_df, row_index)
+            print_row_data(reference_df, default_case_name, row_index)
 
 
 
@@ -335,7 +344,7 @@ def parse_template(template_string):
 
 def extract_agency_info(agencies_regex_list, target_df):
 
-    agency_column_name = default_name[5]
+    agency_column_name = default_case_name[5]
 
     insert_df = pd.DataFrame(data = target_df[agency_column_name])
 
@@ -374,7 +383,7 @@ def extract_agency_info(agencies_regex_list, target_df):
 
 def extract_special_case_info(target_df):
 
-    special_case_column_name = default_name[2]
+    special_case_column_name = default_case_name[2]
 
     insert_df = pd.DataFrame(data = target_df[special_case_column_name])
 
@@ -479,4 +488,142 @@ print(result_df)
 
 out_df.to_excel("out.xls")
 result_df.to_excel("result.xls")
+
+
+
+# law matching !
+
+def match_laws(law_df, row_index, regex_list, column_name_list):
+
+    error_flag = False
+
+    for i in range(0, len(column_name_list)):
+
+        if debug_flag is True or True:      # tmp
+            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
+
+
+        # kaocc: we should find all the matches here ..
+        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        if law_match is not None:
+
+            # print(law_match)
+
+            result = ""
+            for group in law_match.groups():
+                # print(group)
+                
+                if group is not None:
+                    result = result + group
+                else:
+                    result = result + "0"
+
+            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
+            # print(result)
+            return result
+
+        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
+            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+            print_row_data(law_df, default_law_name, row_index)
+            error_flag = True
+        else:
+            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+
+    
+    if error_flag:
+        return "Error"
+    else:
+        return "Other"
+
+
+
+
+
+
+# law analysis test
+
+law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
+
+law_df.dropna(thresh = default_non_na_count, inplace = True)
+law_df.reset_index(drop = True, inplace = True)
+
+print(law_df)
+print(law_df.axes)
+
+
+corruption_law_regex_inst = re.compile(corruption_law_regex)
+criminal_law_regex_inst = re.compile(criminal_law_regex)
+other_law_regex_inst = re.compile(other_law_regex)
+
+
+
+law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
+
+
+person_column_name = default_law_name[0]
+level_column_name = default_law_name[1]
+
+corruption_law_column_name = default_law_name[2]
+criminal_law_column_name = default_law_name[3]
+other_law_column_name = default_law_name[4]
+
+law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
+
+for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
+
+    if str(law_df[level_column_name][row_index]) == "nan":
+        print("index {} is null ... skip".format(row_index))
+        print_row_data(law_df, default_law_name, row_index)
+        continue
+    else:
+        print("Person: {} level: {}".format(law_df[person_column_name][row_index],str(law_df[level_column_name][row_index])))
+
+
+
+    law_string = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+    print("Result law string: {}".format(law_string))
+        
+
+    
+    # law_match must be None ...
+
+
+    
+
+    
+
+    
+
+
+
+    
+print(" -------------- End of the Story --------------")
+
+
+
+# --- debug ---
+
+
+
+# print_row_data(raw_df, default_case_name, 241)
+# print_row_data(raw_df, default_case_name, 242)
+# print_row_data(raw_df, default_case_name, 243)
+# print_row_data(raw_df, default_case_name, 244)
+
+print(fill_df.axes)
+
+#print_row_data(fill_df, default_case_name, 241)
+#print_row_data(fill_df, default_case_name, 242)
+print_row_data(fill_df, default_case_name, 243)
+print_row_data(fill_df, default_case_name, 244)
+# print_row_data(fill_df, default_case_name, 245)
+
+print(law_df.axes)
+
+# print_row_data(law_df, default_law_name, 241)
+# print_row_data(law_df, default_law_name, 242)
+print_row_data(law_df, default_law_name, 243)
+print_row_data(law_df, default_law_name, 244)
+
 
