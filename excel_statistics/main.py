@@ -528,9 +528,14 @@ def agency_analysis(reference_df, out_df, row_file, col_file):
 
 # law matching !
 
+default_max_key_val = 10000      # tmp value
+
 def match_laws(law_df, row_index, regex_list, column_name_list):
 
     error_flag = False
+    no_match_flag = True
+
+    final_key = int(default_max_key_val)           # tmp number 
 
     for i in range(0, len(column_name_list)):
 
@@ -539,9 +544,12 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 
         # kaocc: we should find all the matches here ..
-        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+        #law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
 
-        if law_match is not None:
+        law_match = None
+        law_matches = re.finditer(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        for law_match in law_matches:
 
             # print(law_match)
 
@@ -556,22 +564,35 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
             # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
             # print(result)
-            return result
 
-        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
-            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
-            print_row_data(law_df, default_law_name, row_index)
-            error_flag = True
+            if int(result) < final_key:
+                final_key = int(result)
+
+            # return result
+
+
+        if law_match is None:
+
+            if (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip():
+                print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+                print_row_data(law_df, default_law_name, row_index)
+                error_flag = True
+            else:
+                print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
         else:
-            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+            no_match_flag = False
+            break
 
     
     if error_flag:
-        return "Error"
+        return -1
+    elif no_match_flag:
+        print("[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
+        print_row_data(law_df, default_law_name, row_index)
+        return -1
     else:
-        return "Other"
 
-
+        return final_key
 
 
 
