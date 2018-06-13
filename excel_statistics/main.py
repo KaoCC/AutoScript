@@ -526,20 +526,29 @@ def agency_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+
+def extract_law_info(target_df):
+
+    return target_df
+
+
+
 # law matching !
 
 default_max_key_val = 10000      # tmp value
+default_national_security_key = -2
 
 def match_laws(law_df, row_index, regex_list, column_name_list):
 
     error_flag = False
     no_match_flag = True
+    national_security_flag = False
 
     final_key = int(default_max_key_val)           # tmp number 
 
     for i in range(0, len(column_name_list)):
 
-        if debug_flag is True or True:      # tmp
+        if debug_flag is True:
             print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
 
 
@@ -563,7 +572,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                     result = result + "0"
 
             # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
-            # print(result)
+            
+            #print(result)
 
             if int(result) < final_key:
                 final_key = int(result)
@@ -574,11 +584,19 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
         if law_match is None:
 
             if (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip():
-                print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+
+                # exception fo national security
+                if re.search("國安", str(law_df[column_name_list[i]][row_index])) is not None:
+                    national_security_flag = True
+                    print("Data at row index {} indicate a national security issue".format(row_index))
+                    break
+
+                print("[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
                 print_row_data(law_df, default_law_name, row_index)
                 error_flag = True
+
             else:
-                print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+                print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
         else:
             no_match_flag = False
             break
@@ -586,13 +604,30 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
     
     if error_flag:
         return -1
+    elif national_security_flag:
+        print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
+        return default_national_security_key
     elif no_match_flag:
         print("[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
         print_row_data(law_df, default_law_name, row_index)
-        return -1
+        return -3
+
     else:
 
         return final_key
+
+
+
+# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
+# Note: Other: 0, NS: -2, Error: -1
+
+# this is a simple version
+def law_filter(law_key):
+
+    if (law_key > 400 or law_key <= 700) or (law_key >=120 or law_key <= 134) or (law_key < 0):
+        return law_key
+    else:
+        return 0
 
 
 
@@ -699,23 +734,23 @@ law_column_name_list = [corruption_law_column_name, criminal_law_column_name, ot
 for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
     if str(law_df[level_column_name][row_index]) == "nan":
-        print("index {} is null ... skip".format(row_index))
+        print("[WARNING] index {} is null ... skip".format(row_index))
         print_row_data(law_df, default_law_name, row_index)
         continue
-    else:
-        print("Person: {} level: {}".format(law_df[person_column_name][row_index],str(law_df[level_column_name][row_index])))
+    #else:
+    #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
 
 
 
-    law_string = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
-    print("Result law string: {}".format(law_string))
+    law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+    print("Result law string: {}".format(law_result))
+
+    # filtering
         
+    
 
     
     # law_match must be None ...
-
-
-    
 
 
 
