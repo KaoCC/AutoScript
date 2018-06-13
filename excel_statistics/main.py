@@ -1,5 +1,8 @@
 
 
+# Copyright (C) 2018, Chih-Chen Kao
+
+
 import os
 import re
 import pandas as pd
