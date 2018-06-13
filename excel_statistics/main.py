@@ -591,8 +591,10 @@ print(" ==== calculate_case_records ===== ")
 calculate_case_records(raw_df)
 #calculate_people_records(raw_df)
 
-
+print(" ==== Case Records ===== ")
 calculate_case_records(fill_df)
+
+print(" ==== People Records ===== ")
 calculate_people_records(fill_df)
 
 
@@ -703,6 +705,8 @@ print(" ==== Law Analysis Finished ===== ")
 
 
 
+print(" ==== Output to Excel ===== ")
+
 # output to excel
 
 case_out_df.to_excel("case_out.xls")
@@ -710,10 +714,7 @@ agency_out_df.to_excel("agency_out.xls")
 result_df.to_excel("result.xls")
 
 
-
-
-
-
+print(" ==== Output Finished ===== ")
 
     
 print(" -------------- End of the Story --------------")
