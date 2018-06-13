@@ -526,9 +526,61 @@ def agency_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+# law matching !
+
+def match_laws(law_df, row_index, regex_list, column_name_list):
+
+    error_flag = False
+
+    for i in range(0, len(column_name_list)):
+
+        if debug_flag is True or True:      # tmp
+            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
+
+
+        # kaocc: we should find all the matches here ..
+        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        if law_match is not None:
+
+            # print(law_match)
+
+            result = ""
+            for group in law_match.groups():
+                # print(group)
+                
+                if group is not None:
+                    result = result + group
+                else:
+                    result = result + "0"
+
+            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
+            # print(result)
+            return result
+
+        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
+            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+            print_row_data(law_df, default_law_name, row_index)
+            error_flag = True
+        else:
+            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+
+    
+    if error_flag:
+        return "Error"
+    else:
+        return "Other"
+
+
+
+
+
+
+
+
+
 
 # main logic here
-
 
 
 fill_df = generate_complex_df(raw_df)
@@ -583,66 +635,12 @@ print(" ==== Agency Analysis ===== ")
 agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
 agency_out_df = agency_analysis(fill_df, agency_out_df, "case_row.txt", "agency_col.txt")
 
+print(" ==== Agency Analysis Finished ===== ")
 
 
 
 
-
-# output to excel
-
-case_out_df.to_excel("case_out.xls")
-agency_out_df.to_excel("agency_out.xls")
-result_df.to_excel("result.xls")
-
-
-
-# law matching !
-
-def match_laws(law_df, row_index, regex_list, column_name_list):
-
-    error_flag = False
-
-    for i in range(0, len(column_name_list)):
-
-        if debug_flag is True or True:      # tmp
-            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
-
-
-        # kaocc: we should find all the matches here ..
-        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
-
-        if law_match is not None:
-
-            # print(law_match)
-
-            result = ""
-            for group in law_match.groups():
-                # print(group)
-                
-                if group is not None:
-                    result = result + group
-                else:
-                    result = result + "0"
-
-            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
-            # print(result)
-            return result
-
-        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
-            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
-            print_row_data(law_df, default_law_name, row_index)
-            error_flag = True
-        else:
-            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
-
-    
-    if error_flag:
-        return "Error"
-    else:
-        return "Other"
-
-
-
+print(" ==== Law Analysis ===== ")
 
 
 
@@ -653,7 +651,7 @@ law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, hea
 law_df.dropna(thresh = default_non_na_count, inplace = True)
 law_df.reset_index(drop = True, inplace = True)
 
-print(law_df)
+# print(law_df)
 print(law_df.axes)
 
 
@@ -696,9 +694,24 @@ for row_index in range(default_effective_offset, law_df[corruption_law_column_na
 
     
 
-    
 
-    
+
+print(" ==== Law Analysis Finished ===== ")
+
+
+
+
+
+
+# output to excel
+
+case_out_df.to_excel("case_out.xls")
+agency_out_df.to_excel("agency_out.xls")
+result_df.to_excel("result.xls")
+
+
+
+
 
 
 
@@ -720,15 +733,15 @@ print(fill_df.axes)
 
 #print_row_data(fill_df, default_case_name, 241)
 #print_row_data(fill_df, default_case_name, 242)
-print_row_data(fill_df, default_case_name, 243)
-print_row_data(fill_df, default_case_name, 244)
+#print_row_data(fill_df, default_case_name, 243)
+#print_row_data(fill_df, default_case_name, 244)
 # print_row_data(fill_df, default_case_name, 245)
 
 print(law_df.axes)
 
 # print_row_data(law_df, default_law_name, 241)
 # print_row_data(law_df, default_law_name, 242)
-print_row_data(law_df, default_law_name, 243)
-print_row_data(law_df, default_law_name, 244)
+#print_row_data(law_df, default_law_name, 243)
+#print_row_data(law_df, default_law_name, 244)
 
 
