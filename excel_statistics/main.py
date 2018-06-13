@@ -29,9 +29,9 @@ default_usecols_law_list = [12, 17, 18, 19, 20]
 default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "刑法瀆職罪章", "其他"]
 
 
-corruption_law_regex = r"第(\d+)\s*條(?:第(\d+)\s*項)?(?:第(\d+)\s*款)?"
-criminal_law_regex = r"第(\d+)(?:條)?"
-other_law_regex = r"第(\d+)"
+corruption_law_regex = r"第([4-6]|1[1-5]])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
+criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
+other_law_regex = r"(?:刑法)?第(\d+)\s*(?:條)?|國安"
 
 
 default_effective_offset = 0
