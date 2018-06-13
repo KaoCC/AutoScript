@@ -434,8 +434,91 @@ def is_found_in(regex_list, test_str):
 
 
 
+# KaoCC: the parameters should be changed in the future patches..
+def agency_analysis(reference_df, out_df, row_file, col_file):
 
-def agency_analysis(reference_df, out_df):
+    # these should be merged into "create_output_dataform" or other functions
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+        case = str(reference_df[default_case_name[1]][row_index])
+        agency = str(int(reference_df["Agency"][row_index]))        # check this !
+
+        try:
+
+            if case != "nan" and agency != "nan" and case in row_set and agency in col_set:
+
+
+                if str(out_df.at[case, agency]) == "nan":
+                    out_df.at[case, agency] = 1
+                else:
+                    out_df.at[case, agency] += 1
+
+            else:
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, case, agency))
+                print_row_data(reference_df, default_case_name, row_index)
+
+        except ValueError:
+            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print_row_data(reference_df, default_case_name, row_index)
+
+
+    
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    # print(out_df_sum)
+
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+
+    # print(out_df_sum_row)
+
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
+
+
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
+    
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+
+    if debug_flag is True:
+        print(out_df)
+
+
+
     return out_df
 
 
@@ -459,16 +542,17 @@ calculate_people_records(fill_df)
 
 
 print(" ==== Case Analysis ===== ")
-out_df = create_output_dataform("case_row.txt", "level_col.txt")
-out_df = case_analysis(fill_df, out_df, "case_row.txt", "level_col.txt")
+case_out_df = create_output_dataform("case_row.txt", "level_col.txt")
+case_out_df = case_analysis(fill_df, case_out_df, "case_row.txt", "level_col.txt")
 
+print(" ==== Case Analysis Finished =====")
 
 # raw_df.to_excel("raw.xls")
 # fill_df.to_excel("fill.xls")
 # out_df.to_excel("tmp.xls")
 
 
-print(out_df)
+# print(case_out_df)
 
 
 # read agency lists
@@ -486,9 +570,15 @@ agencies_list = [central_admin_regex_list, local_admin_regex_list, central_counc
 result = extract_agency_info(agencies_list, fill_df)
 result_df = extract_special_case_info(result)
 
-print(result_df)
+# print(result_df)
 
 
+# create agency df
+
+
+print(" ==== Agency Analysis ===== ")
+agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
+agency_out_df = agency_analysis(fill_df, agency_out_df, "case_row.txt", "agency_col.txt")
 
 
 
@@ -497,7 +587,8 @@ print(result_df)
 
 # output to excel
 
-out_df.to_excel("out.xls")
+case_out_df.to_excel("case_out.xls")
+agency_out_df.to_excel("agency_out.xls")
 result_df.to_excel("result.xls")
 
 
