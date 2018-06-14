@@ -553,7 +553,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
     if debug_flag:
         insert_raw_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
 
-    print(insert_df)
+    # print(insert_df)
 
     for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
@@ -565,14 +565,17 @@ def extract_law_info(law_df, target_df, law_column_name_list):
         #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
 
 
-
         law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
-        print("Result law string: {}".format(law_result))
+
+        if debug_flag:
+            print("Result law string: {}".format(law_result))
 
         # filtering and insert to the df
             
         insert_df[tmp_law_col_name][row_index] = law_filter(law_result)
-        insert_raw_df[tmp_law_col_name][row_index] = law_result
+
+        if debug_flag:
+            insert_raw_df[tmp_law_col_name][row_index] = law_result
 
 
     
@@ -737,7 +740,6 @@ print(" ==== Agency Analysis Finished ===== ")
 
 
 print(" ==== Law Analysis ===== ")
-
 
 
 # law analysis test
