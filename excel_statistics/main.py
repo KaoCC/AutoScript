@@ -696,8 +696,8 @@ calculate_people_records(fill_df)
 
 
 print(" ==== Case Analysis ===== ")
-case_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-case_out_df = case_analysis(fill_df, case_out_df, "case_row.txt", "level_col.txt")
+case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
+case_level_out_df = case_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
 
 print(" ==== Case Analysis Finished =====")
 
@@ -706,7 +706,7 @@ print(" ==== Case Analysis Finished =====")
 # out_df.to_excel("tmp.xls")
 
 
-# print(case_out_df)
+# print(case_level_out_df)
 
 
 # read agency lists
@@ -731,8 +731,8 @@ result_df = extract_special_case_info(result)
 
 
 print(" ==== Agency Analysis ===== ")
-agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-agency_out_df = agency_analysis(fill_df, agency_out_df, "case_row.txt", "agency_col.txt")
+case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
+case_agency_out_df = agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
 
 print(" ==== Agency Analysis Finished ===== ")
 
@@ -753,11 +753,9 @@ law_df.reset_index(drop = True, inplace = True)
 print(law_df.axes)
 
 
-
 corruption_law_regex_inst = re.compile(corruption_law_regex)
 criminal_law_regex_inst = re.compile(criminal_law_regex)
 other_law_regex_inst = re.compile(other_law_regex)
-
 
 
 law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
@@ -772,37 +770,18 @@ other_law_column_name = default_law_name[4]
 
 law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
 
-for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
-    if str(law_df[level_column_name][row_index]) == "nan":
-        print("[WARNING] index {} is null ... skip".format(row_index))
-        print_row_data(law_df, default_law_name, row_index)
-        continue
-    #else:
-    #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
-
-
-
-    law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
-    print("Result law string: {}".format(law_result))
-
-    # filtering
-        
-    
-
-    
-    # law_match must be None ...
-
-
-
-
-# test only
 result_df = extract_law_info(law_df, result_df, law_column_name_list) # to be removed or changed
 
+
+law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
+
+
+
+
+
+
 print(" ==== Law Analysis Finished ===== ")
-
-
-
 
 
 
@@ -810,8 +789,10 @@ print(" ==== Output to Excel ===== ")
 
 # output to excel
 
-case_out_df.to_excel("case_out.xls")
-agency_out_df.to_excel("agency_out.xls")
+case_level_out_df.to_excel("case_out.xls")
+case_agency_out_df.to_excel("agency_out.xls")
+# law_level_out_df.to_excel()
+# law_agency_agency_out_df.to_excel()
 result_df.to_excel("result.xls")
 
 
