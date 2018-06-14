@@ -759,6 +759,88 @@ def law_level_analysis(reference_df, out_df, row_file, col_file):
     return out_df
 
 
+def law_agency_analysis(reference_df, out_df, row_file, col_file):
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+        law = str(int(reference_df["Law"][row_index]))             # check col name
+        agency = str(int(reference_df["Agency"][row_index]))
+
+        try:
+
+            if law != "nan" and agency != "nan" and law in row_set and agency in col_set:
+
+
+                if str(out_df.at[law, agency]) == "nan":
+                    out_df.at[law, agency] = 1
+                else:
+                    out_df.at[law, agency] += 1
+
+            else:
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, agency))
+                print_row_data(reference_df, default_case_name, row_index)
+
+        except ValueError:
+            print_row_data(reference_df, default_case_name , row_index)
+        
+
+
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    # print(out_df_sum)
+
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+
+    # print(out_df_sum_row)
+
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
+
+
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
+    
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+
+    if debug_flag is True:
+        print(out_df)
+
+
+    return out_df   
+
 
 
 # main logic here
@@ -862,7 +944,8 @@ law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
 law_level_out_df = law_level_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt")
 
 
-
+law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
+law_agency_out_df = law_agency_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt")
 
 
 print(" ==== Law Analysis Finished ===== ")
@@ -876,7 +959,7 @@ print(" ==== Output to Excel ===== ")
 case_level_out_df.to_excel("case_level_out.xls")
 case_agency_out_df.to_excel("case_agency_out.xls")
 law_level_out_df.to_excel("law_level_out.xls")
-# law_agency_agency_out_df.to_excel()
+law_agency_out_df.to_excel("law_agency_out.xls")
 result_df.to_excel("result.xls")
 
 
