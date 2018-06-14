@@ -1,5 +1,8 @@
 
 
+# Copyright (C) 2018, Chih-Chen Kao
+
+
 import os
 import re
 import pandas as pd
@@ -26,9 +29,9 @@ default_usecols_law_list = [12, 17, 18, 19, 20]
 default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "刑法瀆職罪章", "其他"]
 
 
-corruption_law_regex = r"第(\d+)\s*條(?:第(\d+)\s*項)?(?:第(\d+)\s*款)?"
-criminal_law_regex = r"第(\d+)(?:條)?"
-other_law_regex = r"第(\d+)"
+corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
+criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
+other_law_regex = r"(?:刑)?法第(\d+)\s*(?:條)?|國安"
 
 
 default_effective_offset = 0
@@ -215,7 +218,7 @@ def create_output_dataform(row_file, col_file):
 
 
 # KaoCC: the parameters should be changed in the future patches..
-def case_analysis(reference_df, out_df, row_file, col_file):
+def case_level_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" 
     row_set = set()
@@ -435,7 +438,7 @@ def is_found_in(regex_list, test_str):
 
 
 # KaoCC: the parameters should be changed in the future patches..
-def agency_analysis(reference_df, out_df, row_file, col_file):
+def case_agency_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" or other functions
     row_set = set()
@@ -523,9 +526,324 @@ def agency_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
+# Note: Other: 0, NS: -2, Error: -1
+
+# this is a simple version
+def law_filter(law_key):
+
+    if (law_key > 400 and law_key <= 700) or (law_key >=120 and law_key <= 134) or (law_key < 0):
+        return law_key
+    else:
+        return 0
+
+
+
+
+
+
+def extract_law_info(law_df, target_df, law_column_name_list):
+
+
+    # tmp
+    tmp_law_col_name = "Law"
+    
+    insert_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
+
+    if debug_flag:
+        insert_raw_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
+
+    # print(insert_df)
+
+    for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
+
+        if str(law_df[level_column_name][row_index]) == "nan":
+            print("[WARNING] index {} is null ... skip".format(row_index))
+            print_row_data(law_df, default_law_name, row_index)
+            continue
+        #else:
+        #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
+
+
+        law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+
+        if debug_flag:
+            print("Result law string: {}".format(law_result))
+
+        # filtering and insert to the df
+            
+        insert_df[tmp_law_col_name][row_index] = law_filter(law_result)
+
+        if debug_flag:
+            insert_raw_df[tmp_law_col_name][row_index] = law_result
+
+
+    
+    target_df["Law"] = insert_df
+
+    if debug_flag:
+        target_df["Law_Raw"] = insert_raw_df
+
+    return target_df
+
+
+
+# law matching !
+
+default_max_key_val = 10000      # tmp value
+default_national_security_key = -2
+
+def match_laws(law_df, row_index, regex_list, column_name_list):
+
+    error_flag = False
+    no_match_flag = True
+    national_security_flag = False
+
+    final_key = int(default_max_key_val)           # tmp number 
+
+    for i in range(0, len(column_name_list)):
+
+        if debug_flag is True:
+            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
+
+
+        # kaocc: we should find all the matches here ..
+        #law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        law_match = None
+        law_matches = re.finditer(regex_list[i], str(law_df[column_name_list[i]][row_index]))
+
+        for law_match in law_matches:
+
+            # print(law_match)
+
+            result = ""
+            for group in law_match.groups():
+                # print(group)
+                
+                if group is not None:
+                    result = result + group
+                else:
+                    result = result + "0"
+
+            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
+            
+            #print(result)
+
+            if int(result) < final_key:
+                final_key = int(result)
+
+            # return result
+
+
+        if law_match is None:
+
+            if (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip():
+
+                # exception fo national security
+                if re.search("國安", str(law_df[column_name_list[i]][row_index])) is not None:
+                    national_security_flag = True
+                    print("Data at row index {} indicate a national security issue".format(row_index))
+                    break
+
+                print("[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+                print_row_data(law_df, default_law_name, row_index)
+                error_flag = True
+
+            else:
+                print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+        else:
+            no_match_flag = False
+            break
+
+    
+    if error_flag:
+        return -1
+    elif national_security_flag:
+        print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
+        return default_national_security_key
+    elif no_match_flag:
+        print("[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
+        print_row_data(law_df, default_law_name, row_index)
+        return -3
+
+    else:
+
+        return final_key
+
+
+
+
+
+def law_level_analysis(reference_df, out_df, row_file, col_file):
+
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+        law = str(int(reference_df["Law"][row_index]))             # check col name
+        level = str(int(reference_df[default_case_name[6]][row_index]))
+
+        try:
+
+            if law != "nan" and level != "nan" and law in row_set and level in col_set:
+
+
+                if str(out_df.at[law, level]) == "nan":
+                    out_df.at[law, level] = 1
+                else:
+                    out_df.at[law, level] += 1
+
+            else:
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, level))
+                print_row_data(reference_df, default_case_name, row_index)
+
+        except ValueError:
+            print_row_data(reference_df, default_case_name , row_index)
+        
+
+
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    # print(out_df_sum)
+
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+
+    # print(out_df_sum_row)
+
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
+
+
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
+    
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+
+    if debug_flag is True:
+        print(out_df)
+
+
+    return out_df
+
+
+def law_agency_analysis(reference_df, out_df, row_file, col_file):
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("row label: [{}]".format(label.rstrip()))
+            
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("col label: [{}]".format(label.rstrip()))
+
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+        law = str(int(reference_df["Law"][row_index]))             # check col name
+        agency = str(int(reference_df["Agency"][row_index]))
+
+        try:
+
+            if law != "nan" and agency != "nan" and law in row_set and agency in col_set:
+
+
+                if str(out_df.at[law, agency]) == "nan":
+                    out_df.at[law, agency] = 1
+                else:
+                    out_df.at[law, agency] += 1
+
+            else:
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, agency))
+                print_row_data(reference_df, default_case_name, row_index)
+
+        except ValueError:
+            print_row_data(reference_df, default_case_name , row_index)
+        
+
+
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    # print(out_df_sum)
+
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+
+    # print(out_df_sum_row)
+
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
+
+
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
+    
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+
+    if debug_flag is True:
+        print(out_df)
+
+
+    return out_df   
+
+
 
 # main logic here
-
 
 
 fill_df = generate_complex_df(raw_df)
@@ -536,14 +854,16 @@ print(" ==== calculate_case_records ===== ")
 calculate_case_records(raw_df)
 #calculate_people_records(raw_df)
 
-
+print(" ==== Case Records ===== ")
 calculate_case_records(fill_df)
+
+print(" ==== People Records ===== ")
 calculate_people_records(fill_df)
 
 
 print(" ==== Case Analysis ===== ")
-case_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-case_out_df = case_analysis(fill_df, case_out_df, "case_row.txt", "level_col.txt")
+case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
+case_level_out_df = case_level_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
 
 print(" ==== Case Analysis Finished =====")
 
@@ -552,7 +872,7 @@ print(" ==== Case Analysis Finished =====")
 # out_df.to_excel("tmp.xls")
 
 
-# print(case_out_df)
+# print(case_level_out_df)
 
 
 # read agency lists
@@ -577,70 +897,15 @@ result_df = extract_special_case_info(result)
 
 
 print(" ==== Agency Analysis ===== ")
-agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-agency_out_df = agency_analysis(fill_df, agency_out_df, "case_row.txt", "agency_col.txt")
+case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
+case_agency_out_df = case_agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
+
+print(" ==== Agency Analysis Finished ===== ")
 
 
 
 
-
-
-# output to excel
-
-case_out_df.to_excel("case_out.xls")
-agency_out_df.to_excel("agency_out.xls")
-result_df.to_excel("result.xls")
-
-
-
-# law matching !
-
-def match_laws(law_df, row_index, regex_list, column_name_list):
-
-    error_flag = False
-
-    for i in range(0, len(column_name_list)):
-
-        if debug_flag is True or True:      # tmp
-            print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
-
-
-        # kaocc: we should find all the matches here ..
-        law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
-
-        if law_match is not None:
-
-            # print(law_match)
-
-            result = ""
-            for group in law_match.groups():
-                # print(group)
-                
-                if group is not None:
-                    result = result + group
-                else:
-                    result = result + "0"
-
-            # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
-            # print(result)
-            return result
-
-        elif (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip() and law_match is None:
-            print("Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
-            print_row_data(law_df, default_law_name, row_index)
-            error_flag = True
-        else:
-            print("{} has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
-
-    
-    if error_flag:
-        return "Error"
-    else:
-        return "Other"
-
-
-
-
+print(" ==== Law Analysis ===== ")
 
 
 # law analysis test
@@ -650,14 +915,13 @@ law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, hea
 law_df.dropna(thresh = default_non_na_count, inplace = True)
 law_df.reset_index(drop = True, inplace = True)
 
-print(law_df)
+# print(law_df)
 print(law_df.axes)
 
 
 corruption_law_regex_inst = re.compile(corruption_law_regex)
 criminal_law_regex_inst = re.compile(criminal_law_regex)
 other_law_regex_inst = re.compile(other_law_regex)
-
 
 
 law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
@@ -672,32 +936,34 @@ other_law_column_name = default_law_name[4]
 
 law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
 
-for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
-    if str(law_df[level_column_name][row_index]) == "nan":
-        print("index {} is null ... skip".format(row_index))
-        print_row_data(law_df, default_law_name, row_index)
-        continue
-    else:
-        print("Person: {} level: {}".format(law_df[person_column_name][row_index],str(law_df[level_column_name][row_index])))
+result_df = extract_law_info(law_df, result_df, law_column_name_list) # to be removed or changed
 
 
-
-    law_string = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
-    print("Result law string: {}".format(law_string))
-        
-
-    
-    # law_match must be None ...
+law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
+law_level_out_df = law_level_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt")
 
 
-    
-
-    
-
-    
+law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
+law_agency_out_df = law_agency_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt")
 
 
+print(" ==== Law Analysis Finished ===== ")
+
+
+
+print(" ==== Output to Excel ===== ")
+
+# output to excel
+
+case_level_out_df.to_excel("case_level_out.xls")
+case_agency_out_df.to_excel("case_agency_out.xls")
+law_level_out_df.to_excel("law_level_out.xls")
+law_agency_out_df.to_excel("law_agency_out.xls")
+result_df.to_excel("result.xls")
+
+
+print(" ==== Output Finished ===== ")
 
     
 print(" -------------- End of the Story --------------")
@@ -717,15 +983,15 @@ print(fill_df.axes)
 
 #print_row_data(fill_df, default_case_name, 241)
 #print_row_data(fill_df, default_case_name, 242)
-print_row_data(fill_df, default_case_name, 243)
-print_row_data(fill_df, default_case_name, 244)
+#print_row_data(fill_df, default_case_name, 243)
+#print_row_data(fill_df, default_case_name, 244)
 # print_row_data(fill_df, default_case_name, 245)
 
 print(law_df.axes)
 
 # print_row_data(law_df, default_law_name, 241)
 # print_row_data(law_df, default_law_name, 242)
-print_row_data(law_df, default_law_name, 243)
-print_row_data(law_df, default_law_name, 244)
+#print_row_data(law_df, default_law_name, 243)
+#print_row_data(law_df, default_law_name, 244)
 
 
