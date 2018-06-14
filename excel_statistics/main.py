@@ -526,8 +526,20 @@ def agency_analysis(reference_df, out_df, row_file, col_file):
 
 
 
+# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
+# Note: Other: 0, NS: -2, Error: -1
 
-def extract_law_info(target_df):
+# this is a simple version
+def law_filter(law_key):
+
+    if (law_key > 400 and law_key <= 700) or (law_key >=120 and law_key <= 134) or (law_key < 0):
+        return law_key
+    else:
+        return 0
+
+
+
+
 
     return target_df
 
@@ -618,20 +630,6 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 
 
-# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
-# Note: Other: 0, NS: -2, Error: -1
-
-# this is a simple version
-def law_filter(law_key):
-
-    if (law_key > 400 or law_key <= 700) or (law_key >=120 or law_key <= 134) or (law_key < 0):
-        return law_key
-    else:
-        return 0
-
-
-
-
 
 
 
@@ -711,6 +709,7 @@ law_df.reset_index(drop = True, inplace = True)
 
 # print(law_df)
 print(law_df.axes)
+
 
 
 corruption_law_regex_inst = re.compile(corruption_law_regex)
