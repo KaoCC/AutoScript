@@ -541,6 +541,46 @@ def law_filter(law_key):
 
 
 
+
+def extract_law_info(law_df, target_df, law_column_name_list):
+
+
+    # tmp
+    tmp_law_col_name = "Law"
+    
+    insert_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
+
+    if debug_flag:
+        insert_raw_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
+
+    print(insert_df)
+
+    for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
+
+        if str(law_df[level_column_name][row_index]) == "nan":
+            print("[WARNING] index {} is null ... skip".format(row_index))
+            print_row_data(law_df, default_law_name, row_index)
+            continue
+        #else:
+        #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
+
+
+
+        law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+        print("Result law string: {}".format(law_result))
+
+        # filtering and insert to the df
+            
+        insert_df[tmp_law_col_name][row_index] = law_filter(law_result)
+        insert_raw_df[tmp_law_col_name][row_index] = law_result
+
+
+    
+    target_df["Law"] = insert_df
+
+    if debug_flag:
+        target_df["Law_Raw"] = insert_raw_df
+
     return target_df
 
 
@@ -752,6 +792,10 @@ for row_index in range(default_effective_offset, law_df[corruption_law_column_na
     # law_match must be None ...
 
 
+
+
+# test only
+result_df = extract_law_info(law_df, result_df, law_column_name_list) # to be removed or changed
 
 print(" ==== Law Analysis Finished ===== ")
 
