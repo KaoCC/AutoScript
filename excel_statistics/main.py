@@ -218,7 +218,7 @@ def create_output_dataform(row_file, col_file):
 
 
 # KaoCC: the parameters should be changed in the future patches..
-def case_analysis(reference_df, out_df, row_file, col_file):
+def case_level_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" 
     row_set = set()
@@ -438,7 +438,7 @@ def is_found_in(regex_list, test_str):
 
 
 # KaoCC: the parameters should be changed in the future patches..
-def agency_analysis(reference_df, out_df, row_file, col_file):
+def case_agency_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" or other functions
     row_set = set()
@@ -697,7 +697,7 @@ calculate_people_records(fill_df)
 
 print(" ==== Case Analysis ===== ")
 case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-case_level_out_df = case_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
+case_level_out_df = case_level_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
 
 print(" ==== Case Analysis Finished =====")
 
@@ -732,7 +732,7 @@ result_df = extract_special_case_info(result)
 
 print(" ==== Agency Analysis ===== ")
 case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-case_agency_out_df = agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
+case_agency_out_df = case_agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
 
 print(" ==== Agency Analysis Finished ===== ")
 
