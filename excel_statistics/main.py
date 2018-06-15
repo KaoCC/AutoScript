@@ -103,7 +103,9 @@ def calculate_case_records(reference_df):
         for line in type_file:
             if debug_flag is True:
                 print("[{}]".format(line.rstrip()))
-            table[line.rstrip()] = 0
+
+            if line.strip() and line.strip(u"\ufeff").strip():
+                table[line.strip().rstrip().strip(u"\ufeff")] = 0
 
     for row_index in range(default_effective_offset, reference_df.index.size):
         num = reference_df[default_case_name[0]][row_index]
