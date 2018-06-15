@@ -491,12 +491,12 @@ def case_agency_analysis(reference_df, out_df, row_file, col_file):
 
 
 # {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
-# Note: Other: 0, NS: -2, Error: -1
+# Note: Other: 0, National Security: -2, Error: -1, NO_Match : -3
 
 # this is a simple version
 def law_filter(law_key):
 
-    if (law_key > 400 and law_key <= 700) or (law_key >=120 and law_key <= 134) or (law_key < 0):
+    if (law_key > 400 and law_key <= 700) or (law_key >=120 and law_key <= 134) or (law_key == 213) or (law_key < 0):
         return law_key
     else:
         return 0
