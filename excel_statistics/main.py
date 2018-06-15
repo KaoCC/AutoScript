@@ -137,9 +137,10 @@ def calculate_case_records(reference_df):
     case_record_df = pd.DataFrame(data = table, index = ["Count"])
     case_record_df = case_record_df.T
 
-    return case_record_df
 
     print(" === Calculate Case Result Finished === ")
+
+    return case_record_df
 
 
 
