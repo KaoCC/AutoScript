@@ -214,7 +214,42 @@ def create_output_dataform(row_file, col_file):
     return out_df
     
 
+
+# KAOCC: add flag to determine which parts should be added
+def append_statistic_cells(out_df):
+    col_list = list(out_df)
+
+    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
+
+    # print(out_df_sum)
+
+    out_df_sum_row = out_df_sum.T
+
+    # print(out_df_sum_row)
+
+    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
+    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
+
+    # print(out_df_sum_row)
+
+    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
+    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
+    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
+
+
+    # print(out_df_percentage)
+    # print(out_df_sum_row)
     
+    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
+    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+    if debug_flag is True:
+        print(out_df)
+
+    return out_df
+
+
 
 
 # KaoCC: the parameters should be changed in the future patches..
@@ -265,42 +300,7 @@ def case_level_analysis(reference_df, out_df, row_file, col_file):
 
 
 
-
-    col_list = list(out_df)
-
-    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
-
-    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
-
-    # print(out_df_sum)
-
-
-    out_df_sum_row = out_df_sum.T
-
-    # print(out_df_sum_row)
-
-    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
-    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
-
-
-    # print(out_df_sum_row)
-
-
-    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
-    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
-    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
-
-
-    # print(out_df_percentage)
-    # print(out_df_sum_row)
-    
-    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
-    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
-
-
-    if debug_flag is True:
-        print(out_df)
-
+    out_df = append_statistic_cells(out_df)
 
     return out_df
 
@@ -485,43 +485,7 @@ def case_agency_analysis(reference_df, out_df, row_file, col_file):
 
 
     
-    col_list = list(out_df)
-
-    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
-
-    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
-
-    # print(out_df_sum)
-
-
-    out_df_sum_row = out_df_sum.T
-
-    # print(out_df_sum_row)
-
-    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
-    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
-
-
-    # print(out_df_sum_row)
-
-
-    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
-    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
-    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
-
-
-    # print(out_df_percentage)
-    # print(out_df_sum_row)
-    
-    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
-    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
-
-
-    if debug_flag is True:
-        print(out_df)
-
-
-
+    out_df = append_statistic_cells(out_df)
     return out_df
 
 
@@ -720,41 +684,7 @@ def law_level_analysis(reference_df, out_df, row_file, col_file):
         
 
 
-    col_list = list(out_df)
-
-    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
-
-    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
-
-    # print(out_df_sum)
-
-
-    out_df_sum_row = out_df_sum.T
-
-    # print(out_df_sum_row)
-
-    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
-    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
-
-
-    # print(out_df_sum_row)
-
-
-    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
-    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
-    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
-
-
-    # print(out_df_percentage)
-    # print(out_df_sum_row)
-    
-    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
-    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
-
-
-    if debug_flag is True:
-        print(out_df)
-
+    out_df = append_statistic_cells(out_df)
 
     return out_df
 
@@ -803,41 +733,7 @@ def law_agency_analysis(reference_df, out_df, row_file, col_file):
         
 
 
-    col_list = list(out_df)
-
-    out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
-
-    out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
-
-    # print(out_df_sum)
-
-
-    out_df_sum_row = out_df_sum.T
-
-    # print(out_df_sum_row)
-
-    out_df_sum_row = out_df_sum_row.reindex( columns = out_df.columns)
-    out_df_sum_row = out_df_sum_row.rename(index = {0 : "總計"})
-
-
-    # print(out_df_sum_row)
-
-
-    out_df_percentage = pd.DataFrame(out_df_sum_row, copy = True)
-    out_df_percentage = out_df_percentage.rename(index = {"總計" : "比率"})
-    out_df_percentage = out_df_percentage / out_df_percentage.at["比率", "總計"]
-
-
-    # print(out_df_percentage)
-    # print(out_df_sum_row)
-    
-    out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
-    out_df = out_df.append(out_df_percentage, verify_integrity  = True)
-
-
-    if debug_flag is True:
-        print(out_df)
-
+    out_df = append_statistic_cells(out_df)
 
     return out_df   
 
