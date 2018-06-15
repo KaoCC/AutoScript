@@ -761,8 +761,7 @@ fill_df = generate_complex_df(raw_df)
 # print(fill_df.head())
 
 print(" ==== calculate_case_records ===== ")
-num_case_record_df = calculate_case_records(raw_df)
-#calculate_people_records(raw_df)
+
 
 num_case_record_df = calculate_case_records(raw_df)
 num_case_record_df.to_excel("num_case_record.xls")
