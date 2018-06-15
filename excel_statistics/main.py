@@ -117,7 +117,7 @@ def calculate_case_records(reference_df):
             elif record == "nan" and str(num) == "nan":
                 print("[WARNING]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
-                print("[WARNING]: {} at index {} not found in the table !".format(row_index, record))
+                print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name, row_index)
