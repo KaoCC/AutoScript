@@ -125,12 +125,23 @@ def calculate_case_records(reference_df):
                 print_row_data(reference_df, default_case_name, row_index)
 
 
-    print(" === Case Result")
-    print(table)
-    print(" --- total: {} --- ".format(sum(table.values())))
+    print(" === Calculate Case Result === ")
 
-    print(" === Sorted Result:")
-    print(sorted(table.items(), key = lambda x: x[1]))
+    if debug_flag:
+        print(table)
+        print(" --- total: {} --- ".format(sum(table.values())))
+
+        print(" === Sorted Result ===")
+        print(sorted(table.items(), key = lambda x: x[1]))
+
+    case_record_df = pd.DataFrame(data = table, index = ["Count"])
+    case_record_df = case_record_df.T
+
+    return case_record_df
+
+    print(" === Calculate Case Result Finished === ")
+
+
 
 
 # --------
@@ -749,11 +760,15 @@ fill_df = generate_complex_df(raw_df)
 # print(fill_df.head())
 
 print(" ==== calculate_case_records ===== ")
-calculate_case_records(raw_df)
+num_case_record_df = calculate_case_records(raw_df)
 #calculate_people_records(raw_df)
 
+num_case_record_df = calculate_case_records(raw_df)
+num_case_record_df.to_excel("num_case_record.xls")
+
 print(" ==== Case Records ===== ")
-calculate_case_records(fill_df)
+num_people_record_df = calculate_case_records(fill_df)
+num_people_record_df.to_excel("num_people_record.xls")
 
 print(" ==== People Records ===== ")
 calculate_people_records(fill_df)
