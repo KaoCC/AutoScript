@@ -59,6 +59,30 @@ raw_df.to_excel("raw_df.xls")
 
 
 
+def create_row_col_sets(row_file, col_file):
+
+    row_set = set()
+    col_set = set()
+
+    with open(row_file, encoding = 'utf8') as row_label_file:
+        for label in row_label_file:
+            if debug_flag is True:
+                print("original row label: [{}]".format(label.rstrip()))
+            
+            if label.strip() and label.strip(u"\ufeff").strip():
+                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+    with open(col_file, encoding = 'utf8') as col_label_file:
+        for label in col_label_file:
+            if debug_flag is True:
+                print("original col label: [{}]".format(label.rstrip()))
+
+            if label.strip() and label.strip(u"\ufeff").strip():
+                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+
+
+    return row_set, col_set
+
 
 #------------------------
 # test the format
@@ -69,7 +93,6 @@ def print_row_data(reference_df, col_name_list, row_index):
         print((reference_df[col_name_list[i]][row_index]))
 
     print("\n ------ END ------ \n")
-
 
 
 
@@ -270,24 +293,8 @@ def append_statistic_cells(out_df):
 def case_level_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" 
-    row_set = set()
-    col_set = set()
+    row_set, col_set = create_row_col_sets(row_file, col_file)
 
-    with open(row_file, encoding = 'utf8') as row_label_file:
-        for label in row_label_file:
-            if debug_flag is True:
-                print("row label: [{}]".format(label.rstrip()))
-            
-            if label.strip() and label.strip(u"\ufeff").strip():
-                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
-
-    with open(col_file, encoding = 'utf8') as col_label_file:
-        for label in col_label_file:
-            if debug_flag is True:
-                print("col label: [{}]".format(label.rstrip()))
-
-            if label.strip() and label.strip(u"\ufeff").strip():
-                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
 
     for row_index in range(default_effective_offset, reference_df.index.size):
 
@@ -455,24 +462,7 @@ def is_found_in(regex_list, test_str):
 def case_agency_analysis(reference_df, out_df, row_file, col_file):
 
     # these should be merged into "create_output_dataform" or other functions
-    row_set = set()
-    col_set = set()
-
-    with open(row_file, encoding = 'utf8') as row_label_file:
-        for label in row_label_file:
-            if debug_flag is True:
-                print("row label: [{}]".format(label.rstrip()))
-            
-            if label.strip() and label.strip(u"\ufeff").strip():
-                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
-
-    with open(col_file, encoding = 'utf8') as col_label_file:
-        for label in col_label_file:
-            if debug_flag is True:
-                print("col label: [{}]".format(label.rstrip()))
-
-            if label.strip() and label.strip(u"\ufeff").strip():
-                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+    row_set, col_set = create_row_col_sets(row_file, col_file)
 
 
     for row_index in range(default_effective_offset, reference_df.index.size):
@@ -655,24 +645,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 def law_level_analysis(reference_df, out_df, row_file, col_file):
 
-    row_set = set()
-    col_set = set()
-
-    with open(row_file, encoding = 'utf8') as row_label_file:
-        for label in row_label_file:
-            if debug_flag is True:
-                print("row label: [{}]".format(label.rstrip()))
-            
-            if label.strip() and label.strip(u"\ufeff").strip():
-                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
-
-    with open(col_file, encoding = 'utf8') as col_label_file:
-        for label in col_label_file:
-            if debug_flag is True:
-                print("col label: [{}]".format(label.rstrip()))
-
-            if label.strip() and label.strip(u"\ufeff").strip():
-                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
+    row_set, col_set = create_row_col_sets(row_file, col_file)
 
 
     for row_index in range(default_effective_offset, reference_df.index.size):
@@ -704,25 +677,8 @@ def law_level_analysis(reference_df, out_df, row_file, col_file):
 
 
 def law_agency_analysis(reference_df, out_df, row_file, col_file):
-    row_set = set()
-    col_set = set()
 
-    with open(row_file, encoding = 'utf8') as row_label_file:
-        for label in row_label_file:
-            if debug_flag is True:
-                print("row label: [{}]".format(label.rstrip()))
-            
-            if label.strip() and label.strip(u"\ufeff").strip():
-                row_set.add(label.strip().rstrip().strip(u"\ufeff"))
-
-    with open(col_file, encoding = 'utf8') as col_label_file:
-        for label in col_label_file:
-            if debug_flag is True:
-                print("col label: [{}]".format(label.rstrip()))
-
-            if label.strip() and label.strip(u"\ufeff").strip():
-                col_set.add(label.strip().rstrip().strip(u"\ufeff"))
-
+    row_set, col_set = create_row_col_sets(row_file, col_file)
 
     for row_index in range(default_effective_offset, reference_df.index.size):
         law = str(int(reference_df["Law"][row_index]))             # check col name
