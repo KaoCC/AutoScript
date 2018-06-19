@@ -31,7 +31,7 @@ default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "�
 
 corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
 criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
-other_law_regex = r"(?:刑)?法第(\d+)\s*(?:條)?|國安"
+other_law_regex = r"第?(\d{3})\s*(?:條)?"
 
 
 default_effective_offset = 0
@@ -510,7 +510,7 @@ def case_agency_analysis(reference_df, out_df, row_file, col_file):
 # this is a simple version
 def law_filter(law_key):
 
-    if (law_key > 400 and law_key <= 700) or (law_key >=120 and law_key <= 134) or (law_key == 213) or (law_key < 0):
+    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=120 and law_key <= 134) or (law_key == 213) or (law_key < 0):
         return law_key
     else:
         return 0
@@ -568,7 +568,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
 
 # law matching !
 
-default_max_key_val = 10000      # tmp value
+default_max_key_val = 1000000      # tmp value
 default_national_security_key = -2
 
 def match_laws(law_df, row_index, regex_list, column_name_list):
@@ -595,21 +595,21 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
             # print(law_match)
 
-            result = ""
+            result = int(0)
             for group in law_match.groups():
                 # print(group)
                 
                 if group is not None:
-                    result = result + group
+                    result = result * 100 + int(group)
                 else:
-                    result = result + "0"
+                    result = result * 100
 
             # result = "{}-{}-{}".format(law_match[1], law_match[2], law_match[3])        # check this one !
             
             #print(result)
 
-            if int(result) < final_key:
-                final_key = int(result)
+            if result < final_key:
+                final_key = result
 
             # return result
 
