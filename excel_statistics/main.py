@@ -1,3 +1,4 @@
+# coding: utf-8
 
 
 # Copyright (C) 2018, Chih-Chen Kao
@@ -327,43 +328,38 @@ def case_level_analysis(reference_df, out_df, row_file, col_file):
 
 
 
-def parse_template(template_string):
-
-    selected_flag = False
-    line_count = 0
-    for line in template_string.splitlines():
-
-        if not line.strip() or (line_count == 0 and line[0] != '1'):
-            continue
-
-        line_count += 1
-
-        if debug_flag is True:
-            print("line: [{}]".format(line.rstrip()))
-
-        if line[0] == u'■' or line[0] == u'▓':      # check the special char ?!?
-            selected_flag = True
-            break
-    
-    if selected_flag is True:
-
-        if line_count <= 7:
-            return 1
-        elif line_count == 8:
-            return 2
-        elif line_count >= 9 and line_count <= 11:
-            return 3
-        elif line_count == 12:
-            return 4
-        elif line_count == 13 :
-            return 5
-        else:
-            print("[ERROR]: Error while parsing string: {}".format(template_string))
-            return -2   # Error
-    else:
-        return -1
                 
 
+template_regex = r"1\.採購案件\(以下六小項擇一\)\s+([□■])a.重大工程採購\(2 億元以上\)\s+([□■])b\.一般工程採購\(未達2 億元\)\s+([□■])c\.鉅額財物採購\(1 億元以上\)\s+([□■])d\.一般財物採購\(未達1 億元\)\s+([□■])e\.鉅額勞務採購\(2 千萬元以上\)\s+([□■])f\.一般勞務採購\(未達2千萬元\)\s+([□■])2\.破壞國土\s+3\.補助款\(以下二小項擇一\)\s+([□■])a\.社福補助款\s+([□■])b\.其他補助款\s+([□■])4\.公款詐領\(事務費--差旅費或加班費、業務費\)\s+([□■])5\.替代役\s*"
+template_regex_inst = re.compile(template_regex)
+
+def parse_template_regex(template_string):
+
+    
+    result = re.match(template_regex_inst, template_string)
+
+    if result is None:
+        return -1
+
+
+    groups = result.groups()
+
+    for i in range(0, len(groups)):
+        if groups[i] == '■':
+            if i < 5:
+                return 1
+            elif i == 6:
+                return 2
+            elif i == 7 or i == 8:
+                return 3
+            elif i == 9:
+                return 4
+            elif i == 10:
+                return 5
+            else:
+                return -1  # error
+
+    return 0
 
 
 def extract_agency_info(agencies_regex_list, target_df):
@@ -416,8 +412,14 @@ def extract_special_case_info(target_df):
 
         # print("[{}]".format(input_str))
 
-        insert_df[special_case_column_name][row_index] = parse_template(input_str)
-        
+        trial = parse_template_regex(input_str)
+
+        insert_df[special_case_column_name][row_index] = trial
+
+        if trial < 0:
+            print("[FATAL ERROR] ERROR WHILE MATCHING REGEX at index {} !!".format(row_index))
+            print_row_data(target_df, default_case_name, row_index)
+
         if debug_flag is True:
             print("Special Case at index {} is marked as {}".format(row_index, insert_df[special_case_column_name][row_index]))
 
