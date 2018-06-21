@@ -23,7 +23,7 @@ default_sheet_name = "Sheet1"
 # default_header_index = 0
 # default_usecols = 21
 
-default_non_na_count = 2
+default_non_na_count = 3
 default_usecols_case_list = [0, 7, 8, 12, 14, 16, 17]
 default_case_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
 
