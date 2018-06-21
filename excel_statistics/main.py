@@ -29,29 +29,33 @@ default_case_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公�
 default_usecols_law_list = [12, 17, 18, 19, 20]
 default_law_name = ["公務員姓名", "職務層級", "貪污治罪條例", "刑法瀆職罪章", "其他"]
 
+person_column_name = default_law_name[0]
+level_column_name = default_law_name[1]
+
+corruption_law_column_name = default_law_name[2]
+criminal_law_column_name = default_law_name[3]
+other_law_column_name = default_law_name[4]
+
 
 corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
 criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
 other_law_regex = r"第?(\d{3})\s*(?:條)?"
 
 
+
+corruption_law_regex_inst = re.compile(corruption_law_regex)
+criminal_law_regex_inst = re.compile(criminal_law_regex)
+other_law_regex_inst = re.compile(other_law_regex)
+
+
+law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
+
 default_effective_offset = 0
 
 raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
 
-# print(raw_df.head())
 
-#print(raw_df[default_case_name[0]])
-#print(raw_df[default_case_name[1]])
-#print(raw_df[default_case_name[2]])
-#print(raw_df[default_case_name[3]])
-
-# print(raw_df.dtypes)
-# print(raw_df.index)
-
-
-
-print(raw_df.axes)
+# print(raw_df.axes)
 
 raw_df.to_excel("raw_df.xls")
 
@@ -377,7 +381,7 @@ def extract_agency_info(agencies_regex_list, target_df):
         error_flag = True
         for i in range(0, len(agencies_regex_list)):
             input_str = str(target_df[agency_column_name][row_index])
-            found_flag = is_found_in(agencies_list[i], input_str)
+            found_flag = is_found_in(agencies_regex_list[i], input_str)
 
             if found_flag is True:
                 if debug_flag is True:
@@ -713,156 +717,144 @@ def law_agency_analysis(reference_df, out_df, row_file, col_file):
 
 # main logic here
 
+def main():
 
-fill_df = generate_complex_df(raw_df)
+    fill_df = generate_complex_df(raw_df)
 
-# print(fill_df.head())
+    # print(fill_df.head())
 
-print(" ==== calculate_case_records ===== ")
+    print(" ==== calculate_case_records ===== ")
 
 
-num_case_record_df = calculate_case_records(raw_df)
-num_case_record_df.to_excel("num_case_record.xls")
+    num_case_record_df = calculate_case_records(raw_df)
+    num_case_record_df.to_excel("num_case_record.xls")
 
-print(" ==== Case Records ===== ")
-num_people_record_df = calculate_case_records(fill_df)
-num_people_record_df.to_excel("num_people_record.xls")
+    print(" ==== Case Records ===== ")
+    num_people_record_df = calculate_case_records(fill_df)
+    num_people_record_df.to_excel("num_people_record.xls")
 
-print(" ==== People Records ===== ")
-calculate_people_records(fill_df)
+    print(" ==== People Records ===== ")
+    calculate_people_records(fill_df)
 
 
-print(" ==== Case Analysis ===== ")
-case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-case_level_out_df = case_level_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
+    print(" ==== Case Analysis ===== ")
+    case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
+    case_level_out_df = case_level_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
 
-print(" ==== Case Analysis Finished =====")
+    print(" ==== Case Analysis Finished =====")
 
-# raw_df.to_excel("raw.xls")
-# fill_df.to_excel("fill.xls")
-# out_df.to_excel("tmp.xls")
 
 
-# print(case_level_out_df)
+    # print(case_level_out_df)
 
 
-# read agency lists
+    # read agency lists
 
-agencies_list = []
-central_admin_regex_list = create_agency_regex_list("central_admin.txt")
-local_admin_regex_list = create_agency_regex_list("local_admin.txt")
-central_council_regex_list = create_agency_regex_list("central_council.txt")
-local_council_regex_list = create_agency_regex_list("local_council.txt")
+    agencies_list = []
+    central_admin_regex_list = create_agency_regex_list("central_admin.txt")
+    local_admin_regex_list = create_agency_regex_list("local_admin.txt")
+    central_council_regex_list = create_agency_regex_list("central_council.txt")
+    local_council_regex_list = create_agency_regex_list("local_council.txt")
 
 
-agencies_list = [central_admin_regex_list, local_admin_regex_list, central_council_regex_list, local_council_regex_list]
+    agencies_list = [central_admin_regex_list, local_admin_regex_list, central_council_regex_list, local_council_regex_list]
 
-    
-result = extract_agency_info(agencies_list, fill_df)
-result_df = extract_special_case_info(result)
+        
+    result = extract_agency_info(agencies_list, fill_df)
+    result_df = extract_special_case_info(result)
 
-# print(result_df)
+    # print(result_df)
 
 
-# create agency df
+    # create agency df
 
 
-print(" ==== Agency Analysis ===== ")
-case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-case_agency_out_df = case_agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
+    print(" ==== Agency Analysis ===== ")
+    case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
+    case_agency_out_df = case_agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
 
-print(" ==== Agency Analysis Finished ===== ")
+    print(" ==== Agency Analysis Finished ===== ")
 
 
 
 
-print(" ==== Law Analysis ===== ")
+    print(" ==== Law Analysis ===== ")
 
 
-# law analysis test
+    # law analysis test
 
-law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
+    law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
-law_df.dropna(thresh = default_non_na_count, inplace = True)
-law_df.reset_index(drop = True, inplace = True)
+    law_df.dropna(thresh = default_non_na_count, inplace = True)
+    law_df.reset_index(drop = True, inplace = True)
 
-# print(law_df)
-print(law_df.axes)
+    # print(law_df)
+    print(law_df.axes)
 
 
-corruption_law_regex_inst = re.compile(corruption_law_regex)
-criminal_law_regex_inst = re.compile(criminal_law_regex)
-other_law_regex_inst = re.compile(other_law_regex)
 
 
-law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_regex_inst]
+    law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
 
 
-person_column_name = default_law_name[0]
-level_column_name = default_law_name[1]
+    result_df = extract_law_info(law_df, result_df, law_column_name_list) # to be removed or changed
 
-corruption_law_column_name = default_law_name[2]
-criminal_law_column_name = default_law_name[3]
-other_law_column_name = default_law_name[4]
 
-law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
+    law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
+    law_level_out_df = law_level_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt")
 
 
-result_df = extract_law_info(law_df, result_df, law_column_name_list) # to be removed or changed
+    law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
+    law_agency_out_df = law_agency_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt")
 
 
-law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-law_level_out_df = law_level_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt")
+    print(" ==== Law Analysis Finished ===== ")
 
 
-law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-law_agency_out_df = law_agency_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt")
 
+    print(" ==== Output to Excel ===== ")
 
-print(" ==== Law Analysis Finished ===== ")
+    # output to excel
 
+    case_level_out_df.to_excel("case_level_out.xls")
+    case_agency_out_df.to_excel("case_agency_out.xls")
+    law_level_out_df.to_excel("law_level_out.xls")
+    law_agency_out_df.to_excel("law_agency_out.xls")
+    result_df.to_excel("result.xls")
 
 
-print(" ==== Output to Excel ===== ")
+    print(" ==== Output Finished ===== ")
 
-# output to excel
+        
+    print(" -------------- End of the Story --------------")
 
-case_level_out_df.to_excel("case_level_out.xls")
-case_agency_out_df.to_excel("case_agency_out.xls")
-law_level_out_df.to_excel("law_level_out.xls")
-law_agency_out_df.to_excel("law_agency_out.xls")
-result_df.to_excel("result.xls")
 
 
-print(" ==== Output Finished ===== ")
+    # --- debug ---
 
-    
-print(" -------------- End of the Story --------------")
 
 
+    # print_row_data(raw_df, default_case_name, 241)
+    # print_row_data(raw_df, default_case_name, 242)
+    # print_row_data(raw_df, default_case_name, 243)
+    # print_row_data(raw_df, default_case_name, 244)
 
-# --- debug ---
+    # print(fill_df.axes)
 
+    #print_row_data(fill_df, default_case_name, 241)
+    #print_row_data(fill_df, default_case_name, 242)
+    #print_row_data(fill_df, default_case_name, 243)
+    #print_row_data(fill_df, default_case_name, 244)
+    # print_row_data(fill_df, default_case_name, 245)
 
+    # print(law_df.axes)
 
-# print_row_data(raw_df, default_case_name, 241)
-# print_row_data(raw_df, default_case_name, 242)
-# print_row_data(raw_df, default_case_name, 243)
-# print_row_data(raw_df, default_case_name, 244)
+    # print_row_data(law_df, default_law_name, 241)
+    # print_row_data(law_df, default_law_name, 242)
+    #print_row_data(law_df, default_law_name, 243)
+    #print_row_data(law_df, default_law_name, 244)
 
-print(fill_df.axes)
 
-#print_row_data(fill_df, default_case_name, 241)
-#print_row_data(fill_df, default_case_name, 242)
-#print_row_data(fill_df, default_case_name, 243)
-#print_row_data(fill_df, default_case_name, 244)
-# print_row_data(fill_df, default_case_name, 245)
-
-print(law_df.axes)
-
-# print_row_data(law_df, default_law_name, 241)
-# print_row_data(law_df, default_law_name, 242)
-#print_row_data(law_df, default_law_name, 243)
-#print_row_data(law_df, default_law_name, 244)
-
+if __name__ == "__main__":
+    main()
 
