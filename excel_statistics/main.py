@@ -353,9 +353,10 @@ def parse_template_regex(template_string):
 
     groups = result.groups()
 
+
     for i in range(0, len(groups)):
         if groups[i] == '■':
-            if i < 5:
+            if i <= 5:
                 return 1
             elif i == 6:
                 return 2
