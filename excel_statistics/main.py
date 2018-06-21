@@ -4,6 +4,7 @@
 # Copyright (C) 2018, Chih-Chen Kao
 
 
+import sys
 import os
 import re
 import pandas as pd
@@ -14,7 +15,7 @@ debug_flag = False
 
 
 # KaoCC: change this to the actual location
-default_target_file = r'C:/Users/mojtpm/Downloads/test.xls'
+default_target_file = r'test.xls'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
@@ -52,16 +53,20 @@ law_regex_list = [corruption_law_regex_inst, criminal_law_regex_inst, other_law_
 
 default_effective_offset = 0
 
-raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
+# raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
 
-
-# print(raw_df.axes)
-
-raw_df.to_excel("raw_df.xls")
 
 
 # ----------------------
 
+
+def create_raw_df(target_file, input_sheet_name, usecols_case_list, case_name):
+    raw_df = pd.read_excel(target_file, sheet_name = input_sheet_name, header = None, usecols = usecols_case_list, names = case_name)
+
+    if debug_flag:
+        print(raw_df.axes)
+
+    return raw_df
 
 
 def create_row_col_sets(row_file, col_file):
@@ -719,6 +724,20 @@ def law_agency_analysis(reference_df, out_df, row_file, col_file):
 
 def main():
 
+    if len(sys.argv) > 2:
+        print("[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
+        print("Argument list: {}\n".format(sys.argv))
+        print("Program Usage: python [Excel file loaction]")
+        return
+
+    target_file = default_target_file
+
+    if len(sys.argv) == 2:
+        target_file = sys.argv[1]
+        
+
+    raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
+
     fill_df = generate_complex_df(raw_df)
 
     # print(fill_df.head())
@@ -783,14 +802,15 @@ def main():
 
     # law analysis test
 
-    law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
+    law_df = create_raw_df(target_file, default_sheet_name, default_usecols_law_list, default_law_name)
+
+    # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
     law_df.dropna(thresh = default_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
 
     # print(law_df)
     print(law_df.axes)
-
 
 
 
@@ -816,6 +836,7 @@ def main():
 
     # output to excel
 
+    raw_df.to_excel("raw_df.xls")
     case_level_out_df.to_excel("case_level_out.xls")
     case_agency_out_df.to_excel("case_agency_out.xls")
     law_level_out_df.to_excel("law_level_out.xls")
@@ -833,26 +854,12 @@ def main():
     # --- debug ---
 
 
-
-    # print_row_data(raw_df, default_case_name, 241)
-    # print_row_data(raw_df, default_case_name, 242)
-    # print_row_data(raw_df, default_case_name, 243)
-    # print_row_data(raw_df, default_case_name, 244)
-
     # print(fill_df.axes)
 
-    #print_row_data(fill_df, default_case_name, 241)
-    #print_row_data(fill_df, default_case_name, 242)
-    #print_row_data(fill_df, default_case_name, 243)
-    #print_row_data(fill_df, default_case_name, 244)
-    # print_row_data(fill_df, default_case_name, 245)
 
     # print(law_df.axes)
 
-    # print_row_data(law_df, default_law_name, 241)
-    # print_row_data(law_df, default_law_name, 242)
-    #print_row_data(law_df, default_law_name, 243)
-    #print_row_data(law_df, default_law_name, 244)
+
 
 
 if __name__ == "__main__":
