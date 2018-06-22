@@ -99,11 +99,11 @@ def create_row_col_sets(row_file, col_file):
 # test the format
 
 def print_row_data(reference_df, col_name_list, row_index):
-    print("\n ------ Row Data with index {} Print Out: ------ \n".format(row_index))
+    print("\n ------ Row Data with index {} Print Out: ------".format(row_index))
     for i in range(0, len(col_name_list)):
-        print((reference_df[col_name_list[i]][row_index]))
+        print(" | [{}]".format(reference_df[col_name_list[i]][row_index]))
 
-    print("\n ------ END ------ \n")
+    print("------ END ------ \n")
 
 
 
