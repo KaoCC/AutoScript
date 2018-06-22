@@ -652,40 +652,6 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 
 
-def law_level_analysis(reference_df, out_df, row_file, col_file):
-
-    row_set, col_set = create_row_col_sets(row_file, col_file)
-
-
-    for row_index in range(default_effective_offset, reference_df.index.size):
-        law = str(int(reference_df["Law"][row_index]))             # check col name
-        level = str(int(reference_df[default_case_name[6]][row_index]))
-
-        try:
-
-            if law != "nan" and level != "nan" and law in row_set and level in col_set:
-
-
-                if str(out_df.at[law, level]) == "nan":
-                    out_df.at[law, level] = 1
-                else:
-                    out_df.at[law, level] += 1
-
-            else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, level))
-                print_row_data(reference_df, default_case_name, row_index)
-
-        except ValueError:
-            print_row_data(reference_df, default_case_name , row_index)
-        
-
-
-    out_df = append_statistic_cells(out_df)
-
-    return out_df
-
-
-
 
 
 
