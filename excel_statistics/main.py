@@ -23,7 +23,8 @@ default_sheet_name = "Sheet1"
 # default_header_index = 0
 # default_usecols = 21
 
-default_non_na_count = 3
+default_case_non_na_count = 4
+default_law_non_na_count = 3
 default_usecols_case_list = [0, 7, 8, 12, 14, 16, 17]
 default_case_name = ["編號", "弊端類型", "特殊貪瀆案件註記", "公務員姓名", "性別", "主管機關", "職務層級"]
 
@@ -113,7 +114,7 @@ def print_row_data(reference_df, col_name_list, row_index):
 def generate_complex_df(reference_df):
 
     complex_df = pd.DataFrame(reference_df, copy = True)
-    complex_df.dropna(thresh = default_non_na_count, inplace = True)
+    complex_df.dropna(thresh = default_case_non_na_count, inplace = True)
     complex_df.fillna(method='ffill', inplace = True)
     complex_df.reset_index(drop = True, inplace = True)
 
@@ -807,11 +808,14 @@ def main():
 
     # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
-    law_df.dropna(thresh = default_non_na_count, inplace = True)
+
+    law_df.to_excel("law_df.xls")
+
+    law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
 
     # print(law_df)
-    print(law_df.axes)
+    # print(law_df.axes)
 
 
 
