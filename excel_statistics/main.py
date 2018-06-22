@@ -294,36 +294,31 @@ def append_statistic_cells(out_df):
     return out_df
 
 
+def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label):
 
-
-# KaoCC: the parameters should be changed in the future patches..
-def case_level_analysis(reference_df, out_df, row_file, col_file):
-
-    # these should be merged into "create_output_dataform" 
     row_set, col_set = create_row_col_sets(row_file, col_file)
-
 
     for row_index in range(default_effective_offset, reference_df.index.size):
 
         try:
-            case = str(reference_df[default_case_name[1]][row_index])
-            level = str(int(reference_df[default_case_name[6]][row_index]))
+            row_target = str(reference_df[row_target_label][row_index])
+            col_target = str(int(reference_df[col_target_label][row_index]))
 
 
-            if case != "nan" and level != "nan" and case in row_set and level in col_set:
+            if row_target != "nan" and col_target != "nan" and row_target in row_set and col_target in col_set:
 
 
-                if str(out_df.at[case, level]) == "nan":
-                    out_df.at[case, level] = 1
+                if str(out_df.at[row_target, col_target]) == "nan":
+                    out_df.at[row_target, col_target] = 1
                 else:
-                    out_df.at[case, level] += 1
+                    out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, case, level))
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
-            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print("[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -467,39 +462,6 @@ def is_found_in(regex_list, test_str):
 
 
 
-# KaoCC: the parameters should be changed in the future patches..
-def case_agency_analysis(reference_df, out_df, row_file, col_file):
-
-    # these should be merged into "create_output_dataform" or other functions
-    row_set, col_set = create_row_col_sets(row_file, col_file)
-
-
-    for row_index in range(default_effective_offset, reference_df.index.size):
-        case = str(reference_df[default_case_name[1]][row_index])
-        agency = str(int(reference_df["Agency"][row_index]))        # check this !
-
-        try:
-
-            if case != "nan" and agency != "nan" and case in row_set and agency in col_set:
-
-
-                if str(out_df.at[case, agency]) == "nan":
-                    out_df.at[case, agency] = 1
-                else:
-                    out_df.at[case, agency] += 1
-
-            else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, case, agency))
-                print_row_data(reference_df, default_case_name, row_index)
-
-        except ValueError:
-            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
-            print_row_data(reference_df, default_case_name, row_index)
-
-
-    
-    out_df = append_statistic_cells(out_df)
-    return out_df
 
 
 
@@ -681,41 +643,11 @@ def law_level_analysis(reference_df, out_df, row_file, col_file):
     return out_df
 
 
-def law_agency_analysis(reference_df, out_df, row_file, col_file):
 
-    row_set, col_set = create_row_col_sets(row_file, col_file)
-
-    for row_index in range(default_effective_offset, reference_df.index.size):
-        law = str(int(reference_df["Law"][row_index]))             # check col name
-        agency = str(int(reference_df["Agency"][row_index]))
-
-        try:
-
-            if law != "nan" and agency != "nan" and law in row_set and agency in col_set:
-
-
-                if str(out_df.at[law, agency]) == "nan":
-                    out_df.at[law, agency] = 1
-                else:
-                    out_df.at[law, agency] += 1
-
-            else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, agency))
-                print_row_data(reference_df, default_case_name, row_index)
-
-        except ValueError:
-            print_row_data(reference_df, default_case_name , row_index)
-        
-
-
-    out_df = append_statistic_cells(out_df)
-
-    return out_df   
 
 
 
 # main logic here
-
 def main():
 
     if len(sys.argv) > 2:
@@ -752,7 +684,7 @@ def main():
 
     print(" ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-    case_level_out_df = case_level_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt")
+    case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6])
 
     print(" ==== Case Analysis Finished =====")
 
@@ -782,7 +714,7 @@ def main():
 
     print(" ==== Agency Analysis ===== ")
     case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-    case_agency_out_df = case_agency_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt")
+    case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency")
 
     print(" ==== Agency Analysis Finished ===== ")
 
@@ -816,15 +748,24 @@ def main():
 
 
     law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-    law_level_out_df = law_level_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt")
+    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6])
 
 
     law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-    law_agency_out_df = law_agency_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt")
+    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency")
 
 
     print(" ==== Law Analysis Finished ===== ")
 
+
+    print(" === Special Case Analysis === ")
+
+    special_agency_out_df = create_output_dataform("special_row.txt", "agency_col.txt")
+    special_agency_out_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency")
+
+
+
+    print(" === Special Case Analysis Finish ===")
 
 
     print(" ==== Output to Excel ===== ")
@@ -836,6 +777,7 @@ def main():
     case_agency_out_df.to_excel("case_agency_out.xls")
     law_level_out_df.to_excel("law_level_out.xls")
     law_agency_out_df.to_excel("law_agency_out.xls")
+    special_agency_out_df.to_excel("special_agency_out.xls")
     result_df.to_excel("result.xls")
 
 
