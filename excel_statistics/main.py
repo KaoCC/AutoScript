@@ -763,9 +763,12 @@ def main():
     special_agency_out_df = create_output_dataform("special_row.txt", "agency_col.txt")
     special_agency_out_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency")
 
-
+    special_level_out_df = create_output_dataform("special_row.txt", "level_col.txt")
+    special_level_out_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6])
 
     print(" === Special Case Analysis Finish ===")
+
+
 
 
     print(" ==== Output to Excel ===== ")
@@ -778,6 +781,7 @@ def main():
     law_level_out_df.to_excel("law_level_out.xls")
     law_agency_out_df.to_excel("law_agency_out.xls")
     special_agency_out_df.to_excel("special_agency_out.xls")
+    special_level_out_df.to_excel("special_level_out.xls")
     result_df.to_excel("result.xls")
 
 
