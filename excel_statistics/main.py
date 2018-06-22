@@ -229,10 +229,6 @@ def calculate_people_records(reference_df):
 
 
 
-    
-
-
-
 def create_output_dataform(row_file, col_file):
 
     row_labels = []
@@ -520,9 +516,6 @@ def law_filter(law_key):
 
 
 
-
-
-
 def extract_law_info(law_df, target_df, law_column_name_list):
 
 
@@ -655,7 +648,6 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 
 
-
 def law_level_analysis(reference_df, out_df, row_file, col_file):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
@@ -765,9 +757,7 @@ def main():
     print(" ==== Case Analysis Finished =====")
 
 
-
     # print(case_level_out_df)
-
 
     # read agency lists
 
@@ -860,8 +850,6 @@ def main():
 
 
     # print(fill_df.axes)
-
-
     # print(law_df.axes)
 
 
