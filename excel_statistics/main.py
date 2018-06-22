@@ -672,10 +672,12 @@ def main():
 
 
     num_case_record_df = calculate_case_records(raw_df)
+    num_case_record_df = append_statistic_cells(num_case_record_df)
     num_case_record_df.to_excel("num_case_record.xls")
 
     print(" ==== Case Records ===== ")
     num_people_record_df = calculate_case_records(fill_df)
+    num_people_record_df = append_statistic_cells(num_people_record_df)
     num_people_record_df.to_excel("num_people_record.xls")
 
     print(" ==== People Records ===== ")
