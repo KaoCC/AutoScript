@@ -564,7 +564,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
 
 # law matching !
 
-default_max_key_val = 1000000      # tmp value
+default_max_key_val = 10000000      # tmp value
 default_national_security_key = -2
 
 def match_laws(law_df, row_index, regex_list, column_name_list):
