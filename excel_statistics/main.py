@@ -314,7 +314,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
+                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -337,7 +337,9 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
 
         id_target = str(reference_df[partial_target_label][row_index])
         if id_target == "nan":
-            print("[INFO] Bypass empty case in partial analysis at index {}".format(row_index))
+            if debug_flag:
+                print("[INFO] Bypass empty case in partial analysis at index {}".format(row_index))
+
             continue
 
         try:
@@ -355,7 +357,7 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
+                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -451,7 +453,9 @@ def extract_special_case_info(target_df):
         input_str = str(target_df[special_case_column_name][row_index])
 
         if input_str == "nan":
-            print("[WARNING] Special Case String is null at index {}".format(row_index))
+            if debug_flag:
+                print("[WARNING] Special Case String is null at index {}".format(row_index))
+
             continue
 
         # print("[{}]".format(input_str))
@@ -629,7 +633,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                 error_flag = True
 
             else:
-                print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+                if debug_flag:
+                    print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
         else:
             no_match_flag = False
             break
