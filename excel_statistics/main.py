@@ -328,7 +328,45 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
     return out_df
 
 
+def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label):
 
+    row_set, col_set = create_row_col_sets(row_file, col_file)
+
+
+    for row_index in range(default_effective_offset, reference_df.index.size):
+
+        id_target = str(reference_df[partial_target_label][row_index])
+        if id_target == "nan":
+            print("[INFO] Bypass empty case in partial analysis at index {}".format(row_index))
+            continue
+
+        try:
+
+            row_target = str(reference_df[row_target_label][row_index])
+            col_target = str(int(reference_df[col_target_label][row_index]))
+
+
+            if row_target != "nan" and col_target != "nan" and id_target != "nan" and row_target in row_set and col_target in col_set:
+
+
+                if str(out_df.at[row_target, col_target]) == "nan":
+                    out_df.at[row_target, col_target] = 1
+                else:
+                    out_df.at[row_target, col_target] += 1
+
+            else:
+                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
+                print_row_data(reference_df, default_case_name, row_index)
+
+        except ValueError:
+            print("[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+            print_row_data(reference_df, default_case_name, row_index)
+
+
+
+    out_df = append_statistic_cells(out_df)
+
+    return out_df
                 
 
 template_regex = r"1\.採購案件\(以下六小項擇一\)\s+([□■])a.重大工程採購\(2 億元以上\)\s+([□■])b\.一般工程採購\(未達2 億元\)\s+([□■])c\.鉅額財物採購\(1 億元以上\)\s+([□■])d\.一般財物採購\(未達1 億元\)\s+([□■])e\.鉅額勞務採購\(2 千萬元以上\)\s+([□■])f\.一般勞務採購\(未達2千萬元\)\s+([□■])2\.破壞國土\s+3\.補助款\(以下二小項擇一\)\s+([□■])a\.社福補助款\s+([□■])b\.其他補助款\s+([□■])4\.公款詐領\(事務費--差旅費或加班費、業務費\)\s+([□■])5\.替代役\s*"
@@ -411,6 +449,10 @@ def extract_special_case_info(target_df):
 
     for row_index in range(default_effective_offset, target_df[special_case_column_name].index.size):
         input_str = str(target_df[special_case_column_name][row_index])
+
+        if input_str == "nan":
+            print("[WARNING] Special Case String is null at index {}".format(row_index))
+            continue
 
         # print("[{}]".format(input_str))
 
@@ -768,6 +810,12 @@ def main():
     special_level_out_df = create_output_dataform("special_row.txt", "level_col.txt")
     special_level_out_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6])
 
+    case_special_out_df = create_output_dataform("case_row.txt", "special_row.txt")
+    raw_df = extract_special_case_info(raw_df)
+    case_special_out_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0])
+
+
+
     print(" === Special Case Analysis Finish ===")
 
 
@@ -784,6 +832,7 @@ def main():
     law_agency_out_df.to_excel("law_agency_out.xls")
     special_agency_out_df.to_excel("special_agency_out.xls")
     special_level_out_df.to_excel("special_level_out.xls")
+    case_special_out_df.to_excel("case_special_out.xls")
     result_df.to_excel("result.xls")
 
 
