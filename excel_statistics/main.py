@@ -15,7 +15,7 @@ debug_flag = False
 
 
 # KaoCC: change this to the actual location
-default_target_file = r'test.xls'
+default_target_file = r'test.xlsx'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
