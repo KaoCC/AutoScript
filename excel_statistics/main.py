@@ -212,18 +212,25 @@ def calculate_people_records(reference_df):
 
 
 
-    print(" === People Result")
-    print(level_table)
-    print(gender_table)
+    if debug_flag:
 
-    total_count = sum(level_table.values())
-    print(" --- total: {} --- ".format(total_count))
+        print(" === People Result")
+        print(level_table)
+        print(gender_table)
 
-    level_percentage = [0] * len(level_table)
-    for (key, value) in level_table.items():
-        level_percentage[key - 1] = value / total_count
+        total_count = sum(level_table.values())
+        print(" --- total: {} --- ".format(total_count))
 
-    print(level_percentage)
+        level_percentage = [0] * len(level_table)
+        for (key, value) in level_table.items():
+            level_percentage[key - 1] = value / total_count
+
+        print(level_percentage)
+
+    gender_record_df = pd.DataFrame(data = gender_table, index = ["Count"])
+    gender_record_df = gender_record_df.T
+
+    return gender_record_df
     
 
 
@@ -693,7 +700,9 @@ def main():
     num_people_record_df.to_excel("num_people_record.xls")
 
     print(" ==== People Records ===== ")
-    calculate_people_records(fill_df)
+    num_gender_record_df = calculate_people_records(fill_df)
+    num_gender_record_df = append_statistic_cells(num_gender_record_df)
+    num_gender_record_df.to_excel("num_gender_record.xls")
 
 
     print(" ==== Case Analysis ===== ")
