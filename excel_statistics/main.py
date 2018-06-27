@@ -271,6 +271,9 @@ def append_statistic_cells(out_df):
     col_list = list(out_df)
 
     out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    total = out_df["總計"].sum()
+    out_df.insert(0, "比率", out_df[col_list].sum(axis = 1) / total)
     out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
 
     # print(out_df_sum)
@@ -294,6 +297,9 @@ def append_statistic_cells(out_df):
     
     out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
     out_df = out_df.append(out_df_percentage, verify_integrity  = True)
+
+    # recover the total percentage
+    out_df.at["比率", "比率"] = out_df.at["比率", "總計"]
 
     if debug_flag is True:
         print(out_df)
