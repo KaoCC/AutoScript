@@ -692,17 +692,17 @@ def main():
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
-    num_case_record_df.to_excel("num_case_record.xls")
+    num_case_record_df.to_excel("num_case_record.xlsx")
 
     print(" ==== Case Records ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
-    num_people_record_df.to_excel("num_people_record.xls")
+    num_people_record_df.to_excel("num_people_record.xlsx")
 
     print(" ==== People Records ===== ")
     num_gender_record_df = calculate_people_records(fill_df)
     num_gender_record_df = append_statistic_cells(num_gender_record_df)
-    num_gender_record_df.to_excel("num_gender_record.xls")
+    num_gender_record_df.to_excel("num_gender_record.xlsx")
 
 
     print(" ==== Case Analysis ===== ")
@@ -754,7 +754,7 @@ def main():
     # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
 
-    law_df.to_excel("law_df.xls")
+    law_df.to_excel("law_df.xlsx")
 
     law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
@@ -804,15 +804,15 @@ def main():
 
     # output to excel
 
-    raw_df.to_excel("raw_df.xls")
-    case_level_out_df.to_excel("case_level_out.xls")
-    case_agency_out_df.to_excel("case_agency_out.xls")
-    law_level_out_df.to_excel("law_level_out.xls")
-    law_agency_out_df.to_excel("law_agency_out.xls")
-    special_agency_out_df.to_excel("special_agency_out.xls")
-    special_level_out_df.to_excel("special_level_out.xls")
-    case_special_out_df.to_excel("case_special_out.xls")
-    result_df.to_excel("result.xls")
+    raw_df.to_excel("raw_df.xlsx")
+    case_level_out_df.to_excel("case_level_out.xlsx")
+    case_agency_out_df.to_excel("case_agency_out.xlsx")
+    law_level_out_df.to_excel("law_level_out.xlsx")
+    law_agency_out_df.to_excel("law_agency_out.xlsx")
+    special_agency_out_df.to_excel("special_agency_out.xlsx")
+    special_level_out_df.to_excel("special_level_out.xlsx")
+    case_special_out_df.to_excel("case_special_out.xlsx")
+    result_df.to_excel("result.xlsx")
 
 
     print(" ==== Output Finished ===== ")
