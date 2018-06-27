@@ -265,6 +265,17 @@ def create_output_dataform(row_file, col_file):
     return out_df
     
 
+def generate_ratio_df(out_df):
+
+    col_list = list(out_df)
+
+
+    ratio_df = pd.DataFrame(data = out_df[col_list], copy = True )
+    ratio_df = ratio_df.apply(lambda x: x / (x.sum() + 0.0000001), axis=1)
+
+    return ratio_df
+
+
 
 # KAOCC: add flag to determine which parts should be added
 def append_statistic_cells(out_df):
@@ -301,13 +312,15 @@ def append_statistic_cells(out_df):
     # recover the total percentage
     out_df.at["比率", "比率"] = out_df.at["比率", "總計"]
 
+
+
     if debug_flag is True:
         print(out_df)
 
     return out_df
 
 
-def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label):
+def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, ratio_flag):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -335,13 +348,20 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
             print_row_data(reference_df, default_case_name, row_index)
 
 
+    if ratio_flag:
+        ratio_df = generate_ratio_df(out_df)
+
 
     out_df = append_statistic_cells(out_df)
 
-    return out_df
+
+    if ratio_flag:
+        return out_df, ratio_df
+    else:
+        return out_df
 
 
-def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label):
+def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label, ratio_flag):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -379,9 +399,17 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
 
 
 
+    if ratio_flag:
+        ratio_df = generate_ratio_df(out_df)
+
+
     out_df = append_statistic_cells(out_df)
 
-    return out_df
+
+    if ratio_flag:
+        return out_df, ratio_df
+    else:
+        return out_df
                 
 
 template_regex = r"1\.採購案件\(以下六小項擇一\)\s+([□■])a\.重大工程採購\(2\s*億元以上\)\s+([□■])b\.一般工程採購\(未達2\s*億元\)\s+([□■])c\.鉅額財物採購\(1\s*億元以上\)\s+([□■])d\.一般財物採購\(未達1\s*億元\)\s+([□■])e\.鉅額勞務採購\(2\s*千萬元以上\)\s+([□■])f\.一般勞務採購\(未達2\s*千萬元\)\s+([□■])2\.破壞國土\s+3\.補助款\(以下二小項擇一\)\s+([□■])a\.社福補助款\s+([□■])b\.其他補助款\s+([□■])4\.公款詐領\(事務費--差旅費或加班費、業務費\)\s+([□■])5\.替代役\s*"
@@ -713,7 +741,7 @@ def main():
 
     print(" ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-    case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6])
+    case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6], False)
 
     print(" ==== Case Analysis Finished =====")
 
@@ -743,7 +771,7 @@ def main():
 
     print(" ==== Agency Analysis ===== ")
     case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-    case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency")
+    case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency", False)
 
     print(" ==== Agency Analysis Finished ===== ")
 
@@ -777,11 +805,11 @@ def main():
 
 
     law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6])
+    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], False)
 
 
     law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency")
+    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", False)
 
 
     print(" ==== Law Analysis Finished ===== ")
@@ -790,14 +818,14 @@ def main():
     print(" === Special Case Analysis === ")
 
     special_agency_out_df = create_output_dataform("special_row.txt", "agency_col.txt")
-    special_agency_out_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency")
+    special_agency_out_df, special_agency_ratio_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency", True)
 
     special_level_out_df = create_output_dataform("special_row.txt", "level_col.txt")
-    special_level_out_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6])
+    special_level_out_df, special_level_ratio_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6], True)
 
     case_special_out_df = create_output_dataform("case_row.txt", "special_row.txt")
     raw_df = extract_special_case_info(raw_df)
-    case_special_out_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0])
+    case_special_out_df, case_special_ratio_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0], True)
 
 
 
@@ -818,6 +846,11 @@ def main():
     special_agency_out_df.to_excel("special_agency_out.xlsx")
     special_level_out_df.to_excel("special_level_out.xlsx")
     case_special_out_df.to_excel("case_special_out.xlsx")
+
+    special_agency_ratio_df.to_excel("special_agency_ratio.xlsx")
+    special_level_ratio_df.to_excel("special_level_ratio.xlsx")
+    case_special_ratio_df.to_excel("case_special_ratio.xlsx")
+
     result_df.to_excel("result.xlsx")
 
 
