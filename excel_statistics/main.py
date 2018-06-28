@@ -1,8 +1,12 @@
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 
 # Copyright (C) 2018, Chih-Chen Kao
 
+__author__ = "Chih-Chen Kao"
+__copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
+__license__ = "GPL"
 
 import sys
 import os
@@ -15,7 +19,7 @@ debug_flag = False
 
 
 # KaoCC: change this to the actual location
-default_target_file = r'test.xlsx'
+default_target_file = r'target.xlsx'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
@@ -56,6 +60,23 @@ default_effective_offset = 0
 
 # raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
 
+
+
+
+def sanity_check(target_df, header, check_index_list):
+    for index in check_index_list:
+        if target_df[header[index]].hasnans:
+            print("[FATAL ERROR]: Sanity Check failed in {}".format(header[index]))
+
+            error_index = 0
+            for i in range(0, len(target_df[header[index]])):
+                if pd.isna(target_df[header[index]][i]):
+                    error_index = i
+                    break
+
+            raise ValueError("Data Cannot be NaN in {} at index {}".format(header[index], error_index))
+        else:
+            print("[INFO] Pass Sanity Check in {}".format(header[index]))
 
 
 # ----------------------
@@ -151,7 +172,7 @@ def calculate_case_records(reference_df):
             if record != "nan" and str(num) == "nan":
                 print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
             elif record == "nan" and str(num) == "nan":
-                print("[WARNING]: Possibly belong to the prevoius case at index {}".format(row_index) )
+                print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
                 print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
             else:
@@ -159,7 +180,6 @@ def calculate_case_records(reference_df):
                 print_row_data(reference_df, default_case_name, row_index)
 
 
-    print(" === Calculate Case Result === ")
 
     if debug_flag:
         print(table)
@@ -171,8 +191,7 @@ def calculate_case_records(reference_df):
     case_record_df = pd.DataFrame(data = table, index = ["Count"])
     case_record_df = case_record_df.T
 
-
-    print(" === Calculate Case Result Finished === ")
+    case_record_df.sort_values(by=["Count"], inplace=True, ascending = False)
 
     return case_record_df
 
@@ -703,6 +722,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 # main logic here
 def main():
 
+    print(__copyright__)
+
     if len(sys.argv) > 2:
         print("[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
         print("Argument list: {}\n".format(sys.argv))
@@ -716,19 +737,22 @@ def main():
         
 
     raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
+    raw_df.to_excel("raw_df.xlsx")
+
+    sanity_check(raw_df, default_case_name, [3, 4, 5, 6])
 
     fill_df = generate_complex_df(raw_df)
 
     # print(fill_df.head())
 
-    print(" ==== calculate_case_records ===== ")
-
+    print(" ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
     num_case_record_df.to_excel("num_case_record.xlsx")
 
-    print(" ==== Case Records ===== ")
+
+    print(" ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
     num_people_record_df.to_excel("num_people_record.xlsx")
@@ -787,8 +811,8 @@ def main():
 
     # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
-
     law_df.to_excel("law_df.xlsx")
+    sanity_check(law_df, default_law_name, [0, 1])
 
     law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
@@ -838,7 +862,7 @@ def main():
 
     # output to excel
 
-    raw_df.to_excel("raw_df.xlsx")
+
     case_level_out_df.to_excel("case_level_out.xlsx")
     case_agency_out_df.to_excel("case_agency_out.xlsx")
     law_level_out_df.to_excel("law_level_out.xlsx")
@@ -871,5 +895,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        print(sys.exc_info()[0])
+        import traceback
+        print(traceback.format_exc())
+    finally:
+        print("Press Enter to continue ...") 
+        input()
+
 
