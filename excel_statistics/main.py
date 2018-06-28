@@ -1,8 +1,12 @@
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 
 # Copyright (C) 2018, Chih-Chen Kao
 
+__author__ = "Chih-Chen Kao"
+__copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
+__license__ = "GPL"
 
 import sys
 import os
@@ -702,6 +706,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 # main logic here
 def main():
+
+    print(__copyright__)
 
     if len(sys.argv) > 2:
         print("[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
