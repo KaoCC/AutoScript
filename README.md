@@ -23,7 +23,7 @@ Parse and extract the information from excel files and perform a wide viarity of
 
 ### Notes
 
-- The default file name for the excel file is test.xlsx. On windows system, one can put the target file in the same folder that contains the python script and double click the script to run it in order to simplified the process.
+- The default file name for the excel file is 'target.xlsx'. On windows system, one can put the target file in the same folder that contains the python script and double click the script to run it in order to simplified the process.
 
 - One should remove unnecessary cells such as the header and the comments before processing
 
