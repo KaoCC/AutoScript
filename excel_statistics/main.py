@@ -1,8 +1,12 @@
-# coding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 
 # Copyright (C) 2018, Chih-Chen Kao
 
+__author__ = "Chih-Chen Kao"
+__copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
+__license__ = "GPL"
 
 import sys
 import os
@@ -15,7 +19,7 @@ debug_flag = False
 
 
 # KaoCC: change this to the actual location
-default_target_file = r'test.xlsx'
+default_target_file = r'target.xlsx'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
@@ -56,6 +60,23 @@ default_effective_offset = 0
 
 # raw_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_case_list, names = default_case_name)
 
+
+
+
+def sanity_check(target_df, header, check_index_list):
+    for index in check_index_list:
+        if target_df[header[index]].hasnans:
+            print("[FATAL ERROR]: Sanity Check failed in {}".format(header[index]))
+
+            error_index = 0
+            for i in range(0, len(target_df[header[index]])):
+                if pd.isna(target_df[header[index]][i]):
+                    error_index = i
+                    break
+
+            raise ValueError("Data Cannot be NaN in {} at index {}".format(header[index], error_index))
+        else:
+            print("[INFO] Pass Sanity Check in {}".format(header[index]))
 
 
 # ----------------------
@@ -99,11 +120,11 @@ def create_row_col_sets(row_file, col_file):
 # test the format
 
 def print_row_data(reference_df, col_name_list, row_index):
-    print("\n ------ Row Data with index {} Print Out: ------ \n".format(row_index))
+    print("\n ------ Row Data with index {} Print Out: ------".format(row_index))
     for i in range(0, len(col_name_list)):
-        print((reference_df[col_name_list[i]][row_index]))
+        print(" | [{}]".format(reference_df[col_name_list[i]][row_index]))
 
-    print("\n ------ END ------ \n")
+    print("------ END ------ \n")
 
 
 
@@ -151,7 +172,7 @@ def calculate_case_records(reference_df):
             if record != "nan" and str(num) == "nan":
                 print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
             elif record == "nan" and str(num) == "nan":
-                print("[WARNING]: Possibly belong to the prevoius case at index {}".format(row_index) )
+                print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
                 print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
             else:
@@ -159,7 +180,6 @@ def calculate_case_records(reference_df):
                 print_row_data(reference_df, default_case_name, row_index)
 
 
-    print(" === Calculate Case Result === ")
 
     if debug_flag:
         print(table)
@@ -171,8 +191,7 @@ def calculate_case_records(reference_df):
     case_record_df = pd.DataFrame(data = table, index = ["Count"])
     case_record_df = case_record_df.T
 
-
-    print(" === Calculate Case Result Finished === ")
+    case_record_df.sort_values(by=["Count"], inplace=True, ascending = False)
 
     return case_record_df
 
@@ -212,18 +231,25 @@ def calculate_people_records(reference_df):
 
 
 
-    print(" === People Result")
-    print(level_table)
-    print(gender_table)
+    if debug_flag:
 
-    total_count = sum(level_table.values())
-    print(" --- total: {} --- ".format(total_count))
+        print(" === People Result")
+        print(level_table)
+        print(gender_table)
 
-    level_percentage = [0] * len(level_table)
-    for (key, value) in level_table.items():
-        level_percentage[key - 1] = value / total_count
+        total_count = sum(level_table.values())
+        print(" --- total: {} --- ".format(total_count))
 
-    print(level_percentage)
+        level_percentage = [0] * len(level_table)
+        for (key, value) in level_table.items():
+            level_percentage[key - 1] = value / total_count
+
+        print(level_percentage)
+
+    gender_record_df = pd.DataFrame(data = gender_table, index = ["Count"])
+    gender_record_df = gender_record_df.T
+
+    return gender_record_df
     
 
 
@@ -258,12 +284,26 @@ def create_output_dataform(row_file, col_file):
     return out_df
     
 
+def generate_ratio_df(out_df):
+
+    col_list = list(out_df)
+
+
+    ratio_df = pd.DataFrame(data = out_df[col_list], copy = True )
+    ratio_df = ratio_df.apply(lambda x: x / (x.sum() + 0.0000001), axis=1)
+
+    return ratio_df
+
+
 
 # KAOCC: add flag to determine which parts should be added
 def append_statistic_cells(out_df):
     col_list = list(out_df)
 
     out_df.insert(0, "總計", out_df[col_list].sum(axis = 1))
+
+    total = out_df["總計"].sum()
+    out_df.insert(0, "比率", out_df[col_list].sum(axis = 1) / total)
     out_df_sum = pd.DataFrame(data = out_df[list(out_df)].sum())
 
     # print(out_df_sum)
@@ -288,13 +328,18 @@ def append_statistic_cells(out_df):
     out_df = out_df.append(out_df_sum_row,  verify_integrity  = True)
     out_df = out_df.append(out_df_percentage, verify_integrity  = True)
 
+    # recover the total percentage
+    out_df.at["比率", "比率"] = out_df.at["比率", "總計"]
+
+
+
     if debug_flag is True:
         print(out_df)
 
     return out_df
 
 
-def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label):
+def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, ratio_flag):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -314,7 +359,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
+                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -322,13 +367,20 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
             print_row_data(reference_df, default_case_name, row_index)
 
 
+    if ratio_flag:
+        ratio_df = generate_ratio_df(out_df)
+
 
     out_df = append_statistic_cells(out_df)
 
-    return out_df
+
+    if ratio_flag:
+        return out_df, ratio_df
+    else:
+        return out_df
 
 
-def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label):
+def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label, ratio_flag):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -337,7 +389,9 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
 
         id_target = str(reference_df[partial_target_label][row_index])
         if id_target == "nan":
-            print("[INFO] Bypass empty case in partial analysis at index {}".format(row_index))
+            if debug_flag:
+                print("[INFO] Bypass empty case in partial analysis at index {}".format(row_index))
+
             continue
 
         try:
@@ -355,7 +409,7 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, row_target, col_target))
+                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -364,17 +418,24 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
 
 
 
+    if ratio_flag:
+        ratio_df = generate_ratio_df(out_df)
+
+
     out_df = append_statistic_cells(out_df)
 
-    return out_df
+
+    if ratio_flag:
+        return out_df, ratio_df
+    else:
+        return out_df
                 
 
-template_regex = r"1\.採購案件\(以下六小項擇一\)\s+([□■])a.重大工程採購\(2 億元以上\)\s+([□■])b\.一般工程採購\(未達2 億元\)\s+([□■])c\.鉅額財物採購\(1 億元以上\)\s+([□■])d\.一般財物採購\(未達1 億元\)\s+([□■])e\.鉅額勞務採購\(2 千萬元以上\)\s+([□■])f\.一般勞務採購\(未達2千萬元\)\s+([□■])2\.破壞國土\s+3\.補助款\(以下二小項擇一\)\s+([□■])a\.社福補助款\s+([□■])b\.其他補助款\s+([□■])4\.公款詐領\(事務費--差旅費或加班費、業務費\)\s+([□■])5\.替代役\s*"
+template_regex = r"1\.採購案件\(以下六小項擇一\)\s+([□■])a\.重大工程採購\(2\s*億元以上\)\s+([□■])b\.一般工程採購\(未達2\s*億元\)\s+([□■])c\.鉅額財物採購\(1\s*億元以上\)\s+([□■])d\.一般財物採購\(未達1\s*億元\)\s+([□■])e\.鉅額勞務採購\(2\s*千萬元以上\)\s+([□■])f\.一般勞務採購\(未達2\s*千萬元\)\s+([□■])2\.破壞國土\s+3\.補助款\(以下二小項擇一\)\s+([□■])a\.社福補助款\s+([□■])b\.其他補助款\s+([□■])4\.公款詐領\(事務費--差旅費或加班費、業務費\)\s+([□■])5\.替代役\s*"
 template_regex_inst = re.compile(template_regex)
 
 def parse_template_regex(template_string):
 
-    
     result = re.match(template_regex_inst, template_string)
 
     if result is None:
@@ -451,7 +512,9 @@ def extract_special_case_info(target_df):
         input_str = str(target_df[special_case_column_name][row_index])
 
         if input_str == "nan":
-            print("[WARNING] Special Case String is null at index {}".format(row_index))
+            if debug_flag:
+                print("[WARNING] Special Case String is null at index {}".format(row_index))
+
             continue
 
         # print("[{}]".format(input_str))
@@ -629,7 +692,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                 error_flag = True
 
             else:
-                print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+                if debug_flag:
+                    print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
         else:
             no_match_flag = False
             break
@@ -652,45 +716,13 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
 
 
-def law_level_analysis(reference_df, out_df, row_file, col_file):
-
-    row_set, col_set = create_row_col_sets(row_file, col_file)
-
-
-    for row_index in range(default_effective_offset, reference_df.index.size):
-        law = str(int(reference_df["Law"][row_index]))             # check col name
-        level = str(int(reference_df[default_case_name[6]][row_index]))
-
-        try:
-
-            if law != "nan" and level != "nan" and law in row_set and level in col_set:
-
-
-                if str(out_df.at[law, level]) == "nan":
-                    out_df.at[law, level] = 1
-                else:
-                    out_df.at[law, level] += 1
-
-            else:
-                print("Possible Error found at index {} with data: {}, {}".format(row_index, law, level))
-                print_row_data(reference_df, default_case_name, row_index)
-
-        except ValueError:
-            print_row_data(reference_df, default_case_name , row_index)
-        
-
-
-    out_df = append_statistic_cells(out_df)
-
-    return out_df
-
-
-
 
 
 
 # main logic here
 def main():
+
+    print(__copyright__)
 
     if len(sys.argv) > 2:
         print("[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
@@ -705,30 +737,35 @@ def main():
         
 
     raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
+    raw_df.to_excel("raw_df.xlsx")
+
+    sanity_check(raw_df, default_case_name, [3, 4, 5, 6])
 
     fill_df = generate_complex_df(raw_df)
 
     # print(fill_df.head())
 
-    print(" ==== calculate_case_records ===== ")
-
+    print(" ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
-    num_case_record_df.to_excel("num_case_record.xls")
+    num_case_record_df.to_excel("num_case_record.xlsx")
 
-    print(" ==== Case Records ===== ")
+
+    print(" ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
-    num_people_record_df.to_excel("num_people_record.xls")
+    num_people_record_df.to_excel("num_people_record.xlsx")
 
     print(" ==== People Records ===== ")
-    calculate_people_records(fill_df)
+    num_gender_record_df = calculate_people_records(fill_df)
+    num_gender_record_df = append_statistic_cells(num_gender_record_df)
+    num_gender_record_df.to_excel("num_gender_record.xlsx")
 
 
     print(" ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
-    case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6])
+    case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6], False)
 
     print(" ==== Case Analysis Finished =====")
 
@@ -758,7 +795,7 @@ def main():
 
     print(" ==== Agency Analysis ===== ")
     case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
-    case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency")
+    case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency", False)
 
     print(" ==== Agency Analysis Finished ===== ")
 
@@ -774,8 +811,8 @@ def main():
 
     # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
-
-    law_df.to_excel("law_df.xls")
+    law_df.to_excel("law_df.xlsx")
+    sanity_check(law_df, default_law_name, [0, 1])
 
     law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
@@ -792,11 +829,11 @@ def main():
 
 
     law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6])
+    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], False)
 
 
     law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency")
+    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", False)
 
 
     print(" ==== Law Analysis Finished ===== ")
@@ -805,14 +842,14 @@ def main():
     print(" === Special Case Analysis === ")
 
     special_agency_out_df = create_output_dataform("special_row.txt", "agency_col.txt")
-    special_agency_out_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency")
+    special_agency_out_df, special_agency_ratio_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency", True)
 
     special_level_out_df = create_output_dataform("special_row.txt", "level_col.txt")
-    special_level_out_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6])
+    special_level_out_df, special_level_ratio_df = row_col_analysis(result_df, special_level_out_df, "special_row.txt", "level_col.txt", "Special", default_case_name[6], True)
 
     case_special_out_df = create_output_dataform("case_row.txt", "special_row.txt")
     raw_df = extract_special_case_info(raw_df)
-    case_special_out_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0])
+    case_special_out_df, case_special_ratio_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0], True)
 
 
 
@@ -825,15 +862,20 @@ def main():
 
     # output to excel
 
-    raw_df.to_excel("raw_df.xls")
-    case_level_out_df.to_excel("case_level_out.xls")
-    case_agency_out_df.to_excel("case_agency_out.xls")
-    law_level_out_df.to_excel("law_level_out.xls")
-    law_agency_out_df.to_excel("law_agency_out.xls")
-    special_agency_out_df.to_excel("special_agency_out.xls")
-    special_level_out_df.to_excel("special_level_out.xls")
-    case_special_out_df.to_excel("case_special_out.xls")
-    result_df.to_excel("result.xls")
+
+    case_level_out_df.to_excel("case_level_out.xlsx")
+    case_agency_out_df.to_excel("case_agency_out.xlsx")
+    law_level_out_df.to_excel("law_level_out.xlsx")
+    law_agency_out_df.to_excel("law_agency_out.xlsx")
+    special_agency_out_df.to_excel("special_agency_out.xlsx")
+    special_level_out_df.to_excel("special_level_out.xlsx")
+    case_special_out_df.to_excel("case_special_out.xlsx")
+
+    special_agency_ratio_df.to_excel("special_agency_ratio.xlsx")
+    special_level_ratio_df.to_excel("special_level_ratio.xlsx")
+    case_special_ratio_df.to_excel("case_special_ratio.xlsx")
+
+    result_df.to_excel("result.xlsx")
 
 
     print(" ==== Output Finished ===== ")
@@ -853,5 +895,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        print(sys.exc_info()[0])
+        import traceback
+        print(traceback.format_exc())
+    finally:
+        print("Press Enter to continue ...") 
+        input()
+
 
