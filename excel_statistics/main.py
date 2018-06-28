@@ -163,7 +163,6 @@ def calculate_case_records(reference_df):
                 print_row_data(reference_df, default_case_name, row_index)
 
 
-    print(" === Calculate Case Result === ")
 
     if debug_flag:
         print(table)
@@ -726,14 +725,14 @@ def main():
 
     # print(fill_df.head())
 
-    print(" ==== calculate_case_records ===== ")
-
+    print(" ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
     num_case_record_df.to_excel("num_case_record.xlsx")
 
-    print(" ==== Case Records ===== ")
+
+    print(" ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
     num_people_record_df.to_excel("num_people_record.xlsx")
