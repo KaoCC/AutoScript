@@ -175,8 +175,7 @@ def calculate_case_records(reference_df):
     case_record_df = pd.DataFrame(data = table, index = ["Count"])
     case_record_df = case_record_df.T
 
-
-    print(" === Calculate Case Result Finished === ")
+    case_record_df.sort_values(by=["Count"], inplace=True, ascending = False)
 
     return case_record_df
 
