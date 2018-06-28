@@ -62,6 +62,23 @@ default_effective_offset = 0
 
 
 
+
+def sanity_check(target_df, header, check_index_list):
+    for index in check_index_list:
+        if target_df[header[index]].hasnans:
+            print("[FATAL ERROR]: Sanity Check failed in {}".format(header[index]))
+
+            error_index = 0
+            for i in range(0, len(target_df[header[index]])):
+                if pd.isna(target_df[header[index]][i]):
+                    error_index = i
+                    break
+
+            raise ValueError("Data Cannot be NaN in {} at index {}".format(header[index], error_index))
+        else:
+            print("[INFO] Pass Sanity Check in {}".format(header[index]))
+
+
 # ----------------------
 
 
@@ -155,7 +172,7 @@ def calculate_case_records(reference_df):
             if record != "nan" and str(num) == "nan":
                 print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
             elif record == "nan" and str(num) == "nan":
-                print("[WARNING]: Possibly belong to the prevoius case at index {}".format(row_index) )
+                print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
                 print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
             else:
@@ -720,6 +737,9 @@ def main():
         
 
     raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
+    raw_df.to_excel("raw_df.xlsx")
+
+    sanity_check(raw_df, default_case_name, [3, 4, 5, 6])
 
     fill_df = generate_complex_df(raw_df)
 
@@ -791,8 +811,8 @@ def main():
 
     # law_df = pd.read_excel(default_target_file, sheet_name = default_sheet_name, header = None, usecols = default_usecols_law_list, names = default_law_name)
 
-
     law_df.to_excel("law_df.xlsx")
+    sanity_check(law_df, default_law_name, [0, 1])
 
     law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
@@ -842,7 +862,7 @@ def main():
 
     # output to excel
 
-    raw_df.to_excel("raw_df.xlsx")
+
     case_level_out_df.to_excel("case_level_out.xlsx")
     case_agency_out_df.to_excel("case_agency_out.xlsx")
     law_level_out_df.to_excel("law_level_out.xlsx")
