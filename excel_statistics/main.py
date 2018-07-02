@@ -8,10 +8,9 @@ __author__ = "Chih-Chen Kao"
 __copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
 __license__ = "GPL"
 
+import re
 import sys
 import os
-import re
-import pandas as pd
 
 # configs & parameters
 
@@ -829,11 +828,11 @@ def main():
 
 
     law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], False)
+    law_level_out_df, law_level_ratio_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], True)
 
 
     law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", False)
+    law_agency_out_df, law_agency_ratio_df  = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", True)
 
 
     print(" ==== Law Analysis Finished ===== ")
@@ -875,6 +874,10 @@ def main():
     special_level_ratio_df.to_excel("special_level_ratio.xlsx")
     case_special_ratio_df.to_excel("case_special_ratio.xlsx")
 
+    law_level_ratio_df.to_excel("law_level_ratio.xlsx")
+    law_agency_ratio_df.to_excel("law_agency_ratio_df.xlsx")
+
+
     result_df.to_excel("result.xlsx")
 
 
@@ -896,6 +899,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        import pandas as pd
         main()
     except:
         print(sys.exc_info()[0])
