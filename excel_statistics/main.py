@@ -828,11 +828,11 @@ def main():
 
 
     law_level_out_df = create_output_dataform("law_row.txt", "level_col.txt")
-    law_level_out_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], False)
+    law_level_out_df, law_level_ratio_df = row_col_analysis(result_df, law_level_out_df, "law_row.txt", "level_col.txt", "Law", default_case_name[6], True)
 
 
     law_agency_out_df = create_output_dataform("law_row.txt", "agency_col.txt")
-    law_agency_out_df = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", False)
+    law_agency_out_df, law_agency_ratio_df  = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", True)
 
 
     print(" ==== Law Analysis Finished ===== ")
@@ -873,6 +873,10 @@ def main():
     special_agency_ratio_df.to_excel("special_agency_ratio.xlsx")
     special_level_ratio_df.to_excel("special_level_ratio.xlsx")
     case_special_ratio_df.to_excel("case_special_ratio.xlsx")
+
+    law_level_ratio_df.to_excel("law_level_ratio.xlsx")
+    law_agency_ratio_df.to_excel("law_agency_ratio_df.xlsx")
+
 
     result_df.to_excel("result.xlsx")
 

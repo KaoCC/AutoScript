@@ -13,12 +13,18 @@ Parse and extract the information from excel files and perform a wide viarity of
 
 - [Python 3.6 +](https://www.python.org/)
 - [Pandas 0.32 +](https://pandas.pydata.org/)
+- [xlrd](http://www.python-excel.org/)
 - [OpenPyXL](https://openpyxl.readthedocs.io/en/stable/)
 
 
+
+### Preliminary
+
+Execute or double-click the script click_me_first.py to install the required packages
+
 ### Usage
 
-    python main.py path/to/excel_file
+`python main.py path/to/excel_file`
 
 
 ### Notes
