@@ -8,10 +8,9 @@ __author__ = "Chih-Chen Kao"
 __copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
 __license__ = "GPL"
 
+import re
 import sys
 import os
-import re
-import pandas as pd
 
 # configs & parameters
 
@@ -896,6 +895,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        import pandas as pd
         main()
     except:
         print(sys.exc_info()[0])
