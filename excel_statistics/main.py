@@ -444,6 +444,14 @@ def parse_template_regex(template_string):
 
     groups = result.groups()
 
+    count = 0
+    for mark in groups:
+        if mark == '■':
+            count = count + 1
+
+    if count > 1:
+        return -1
+
 
     for i in range(0, len(groups)):
         if groups[i] == '■':
