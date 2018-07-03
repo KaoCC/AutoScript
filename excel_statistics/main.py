@@ -19,6 +19,7 @@ debug_flag = False
 
 # KaoCC: change this to the actual location
 default_target_file = r'target.xlsx'
+default_target_file_alter = r'target.xls'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
@@ -121,7 +122,8 @@ def create_row_col_sets(row_file, col_file):
 def print_row_data(reference_df, col_name_list, row_index):
     print("\n ------ Row Data with index {} Print Out: ------".format(row_index))
     for i in range(0, len(col_name_list)):
-        print(" | [{}]".format(reference_df[col_name_list[i]][row_index]))
+        print("[{}]: [{}]".format(col_name_list[i], reference_df[col_name_list[i]][row_index]))
+
 
     print("------ END ------ \n")
 
@@ -153,7 +155,7 @@ def calculate_case_records(reference_df):
 
     table = {}
 
-    with open("type.txt", encoding = 'utf8') as type_file:
+    with open("case_row.txt", encoding = 'utf8') as type_file:
         for line in type_file:
             if debug_flag is True:
                 print("[{}]".format(line.rstrip()))
@@ -173,7 +175,7 @@ def calculate_case_records(reference_df):
             elif record == "nan" and str(num) == "nan":
                 print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
-                print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
+                print("[WARNING]: [{}] at index {} not found in the table !".format(record, row_index))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name, row_index)
@@ -287,7 +289,6 @@ def generate_ratio_df(out_df):
 
     col_list = list(out_df)
 
-
     ratio_df = pd.DataFrame(data = out_df[col_list], copy = True )
     ratio_df = ratio_df.apply(lambda x: x / (x.sum() + 0.0000001), axis=1)
 
@@ -358,7 +359,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -408,7 +409,7 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -442,6 +443,14 @@ def parse_template_regex(template_string):
 
 
     groups = result.groups()
+
+    count = 0
+    for mark in groups:
+        if mark == '■':
+            count = count + 1
+
+    if count > 1:
+        return -1
 
 
     for i in range(0, len(groups)):
@@ -523,7 +532,7 @@ def extract_special_case_info(target_df):
         insert_df[special_case_column_name][row_index] = trial
 
         if trial < 0:
-            print("[FATAL ERROR] ERROR WHILE MATCHING REGEX at index {} !!".format(row_index))
+            print("[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
             print_row_data(target_df, default_case_name, row_index)
 
         if debug_flag is True:
@@ -683,7 +692,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                 # exception fo national security
                 if re.search("國安", str(law_df[column_name_list[i]][row_index])) is not None:
                     national_security_flag = True
-                    print("Data at row index {} indicate a national security issue".format(row_index))
+                    print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
                     break
 
                 print("[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
@@ -729,11 +738,17 @@ def main():
         print("Program Usage: python [Excel file loaction]")
         return
 
-    target_file = default_target_file
-
     if len(sys.argv) == 2:
         target_file = sys.argv[1]
-        
+    else:
+        target_file = default_target_file
+
+        if not os.path.exists(target_file) and os.path.exists(default_target_file_alter):
+            target_file = default_target_file_alter
+
+
+    print("Target File : {}".format(target_file))
+
 
     raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
     raw_df.to_excel("raw_df.xlsx")
@@ -744,23 +759,27 @@ def main():
 
     # print(fill_df.head())
 
+
+    num_writer = pd.ExcelWriter("numbers.xlsx")
+
     print(" ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
-    num_case_record_df.to_excel("num_case_record.xlsx")
+    num_case_record_df.to_excel(num_writer, "num_case_record")
 
 
     print(" ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
-    num_people_record_df.to_excel("num_people_record.xlsx")
+    num_people_record_df.to_excel(num_writer, "num_people_record")
 
     print(" ==== People Records ===== ")
     num_gender_record_df = calculate_people_records(fill_df)
     num_gender_record_df = append_statistic_cells(num_gender_record_df)
-    num_gender_record_df.to_excel("num_gender_record.xlsx")
+    num_gender_record_df.to_excel(num_writer, "num_gender_record")
 
+    num_writer.save()
 
     print(" ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
@@ -800,7 +819,6 @@ def main():
 
 
 
-
     print(" ==== Law Analysis ===== ")
 
 
@@ -818,7 +836,6 @@ def main():
 
     # print(law_df)
     # print(law_df.axes)
-
 
 
     law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
@@ -861,21 +878,38 @@ def main():
 
     # output to excel
 
-
     case_level_out_df.to_excel("case_level_out.xlsx")
     case_agency_out_df.to_excel("case_agency_out.xlsx")
-    law_level_out_df.to_excel("law_level_out.xlsx")
-    law_agency_out_df.to_excel("law_agency_out.xlsx")
-    special_agency_out_df.to_excel("special_agency_out.xlsx")
-    special_level_out_df.to_excel("special_level_out.xlsx")
-    case_special_out_df.to_excel("case_special_out.xlsx")
 
-    special_agency_ratio_df.to_excel("special_agency_ratio.xlsx")
-    special_level_ratio_df.to_excel("special_level_ratio.xlsx")
-    case_special_ratio_df.to_excel("case_special_ratio.xlsx")
+    special_agency_writer = pd.ExcelWriter('special_agency_out.xlsx')
+    special_level_writer = pd.ExcelWriter('special_level_out.xlsx')
+    case_special_writer = pd.ExcelWriter('case_special_out.xlsx')
 
-    law_level_ratio_df.to_excel("law_level_ratio.xlsx")
-    law_agency_ratio_df.to_excel("law_agency_ratio_df.xlsx")
+    special_agency_out_df.to_excel(special_agency_writer, "special_agency_out")
+    special_level_out_df.to_excel(special_level_writer, "special_level_out")
+    case_special_out_df.to_excel(case_special_writer, "case_special_out")
+
+    special_agency_ratio_df.to_excel(special_agency_writer, "special_agency_ratio")
+    special_level_ratio_df.to_excel(special_level_writer, "special_level_ratio")
+    case_special_ratio_df.to_excel(case_special_writer, "case_special_ratio")
+
+    special_agency_writer.save()
+    special_level_writer.save()
+    case_special_writer.save()
+
+
+    law_level_writer = pd.ExcelWriter("law_level_out.xlsx")
+    law_agency_writer = pd.ExcelWriter("law_agency_out.xlsx")
+
+
+    law_level_out_df.to_excel(law_level_writer, "law_level_out")
+    law_agency_out_df.to_excel(law_agency_writer, "law_agency_out")
+
+    law_level_ratio_df.to_excel(law_level_writer, "law_level_ratio")
+    law_agency_ratio_df.to_excel(law_agency_writer, "law_agency_ratio")
+
+    law_level_writer.save()
+    law_agency_writer.save()
 
 
     result_df.to_excel("result.xlsx")
@@ -887,13 +921,11 @@ def main():
     print(" -------------- End of the Story --------------")
 
 
-
     # --- debug ---
 
 
     # print(fill_df.axes)
     # print(law_df.axes)
-
 
 
 
