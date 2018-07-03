@@ -19,6 +19,7 @@ debug_flag = False
 
 # KaoCC: change this to the actual location
 default_target_file = r'target.xlsx'
+default_target_file_alter = r'target.xls'
 default_sheet_name = "Sheet1"
 
 # --- unused ---
@@ -286,7 +287,6 @@ def create_output_dataform(row_file, col_file):
 def generate_ratio_df(out_df):
 
     col_list = list(out_df)
-
 
     ratio_df = pd.DataFrame(data = out_df[col_list], copy = True )
     ratio_df = ratio_df.apply(lambda x: x / (x.sum() + 0.0000001), axis=1)
@@ -729,11 +729,17 @@ def main():
         print("Program Usage: python [Excel file loaction]")
         return
 
-    target_file = default_target_file
-
     if len(sys.argv) == 2:
         target_file = sys.argv[1]
-        
+    else:
+        target_file = default_target_file
+
+        if not os.path.exists(target_file) and os.path.exists(default_target_file_alter):
+            target_file = default_target_file_alter
+
+
+    print("Target File : {}".format(target_file))
+
 
     raw_df = create_raw_df(target_file, default_sheet_name, default_usecols_case_list, default_case_name)
     raw_df.to_excel("raw_df.xlsx")
@@ -800,7 +806,6 @@ def main():
 
 
 
-
     print(" ==== Law Analysis ===== ")
 
 
@@ -818,7 +823,6 @@ def main():
 
     # print(law_df)
     # print(law_df.axes)
-
 
 
     law_column_name_list = [corruption_law_column_name, criminal_law_column_name, other_law_column_name]
@@ -887,13 +891,11 @@ def main():
     print(" -------------- End of the Story --------------")
 
 
-
     # --- debug ---
 
 
     # print(fill_df.axes)
     # print(law_df.axes)
-
 
 
 
