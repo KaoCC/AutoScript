@@ -17,7 +17,6 @@ Parse and extract the information from excel files and perform a wide viarity of
 - [OpenPyXL](https://openpyxl.readthedocs.io/en/stable/)
 
 
-
 ### Preliminary
 
 Execute or double-click the script click_me_first.py to install the required packages
@@ -29,7 +28,7 @@ Execute or double-click the script click_me_first.py to install the required pac
 
 ### Notes
 
-- The default file name for the excel file is 'target.xlsx'. On windows system, one can put the target file in the same folder that contains the python script and double click the script to run it in order to simplified the process.
+- The default file name for the excel file is 'target.xlsx' with sheet name 'Sheet1'. On windows system, one can put the target file in the same folder that contains the python script and double click the script to execute it in order to simplify the process.
 
-- One should remove unnecessary cells such as the header and the comments before processing
+- One should remove unnecessary cells such as the header and the comments before processing.
 
