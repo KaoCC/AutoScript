@@ -154,7 +154,7 @@ def calculate_case_records(reference_df):
 
     table = {}
 
-    with open("type.txt", encoding = 'utf8') as type_file:
+    with open("case_row.txt", encoding = 'utf8') as type_file:
         for line in type_file:
             if debug_flag is True:
                 print("[{}]".format(line.rstrip()))
