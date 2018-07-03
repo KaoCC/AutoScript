@@ -122,7 +122,8 @@ def create_row_col_sets(row_file, col_file):
 def print_row_data(reference_df, col_name_list, row_index):
     print("\n ------ Row Data with index {} Print Out: ------".format(row_index))
     for i in range(0, len(col_name_list)):
-        print(" | [{}]".format(reference_df[col_name_list[i]][row_index]))
+        print("[{}]: [{}]".format(col_name_list[i], reference_df[col_name_list[i]][row_index]))
+
 
     print("------ END ------ \n")
 
@@ -174,7 +175,7 @@ def calculate_case_records(reference_df):
             elif record == "nan" and str(num) == "nan":
                 print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
-                print("[WARNING]: {} at index {} not found in the table !".format(record, row_index))
+                print("[WARNING]: [{}] at index {} not found in the table !".format(record, row_index))
             else:
                 print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name, row_index)
@@ -358,7 +359,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -408,7 +409,7 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: {}: {}, {}: {}".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
@@ -523,7 +524,7 @@ def extract_special_case_info(target_df):
         insert_df[special_case_column_name][row_index] = trial
 
         if trial < 0:
-            print("[FATAL ERROR] ERROR WHILE MATCHING REGEX at index {} !!".format(row_index))
+            print("[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
             print_row_data(target_df, default_case_name, row_index)
 
         if debug_flag is True:
@@ -683,7 +684,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                 # exception fo national security
                 if re.search("國安", str(law_df[column_name_list[i]][row_index])) is not None:
                     national_security_flag = True
-                    print("Data at row index {} indicate a national security issue".format(row_index))
+                    print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
                     break
 
                 print("[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
