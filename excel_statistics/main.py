@@ -751,23 +751,27 @@ def main():
 
     # print(fill_df.head())
 
+
+    num_writer = pd.ExcelWriter("numbers.xlsx")
+
     print(" ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
-    num_case_record_df.to_excel("num_case_record.xlsx")
+    num_case_record_df.to_excel(num_writer, "num_case_record")
 
 
     print(" ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
-    num_people_record_df.to_excel("num_people_record.xlsx")
+    num_people_record_df.to_excel(num_writer, "num_people_record")
 
     print(" ==== People Records ===== ")
     num_gender_record_df = calculate_people_records(fill_df)
     num_gender_record_df = append_statistic_cells(num_gender_record_df)
-    num_gender_record_df.to_excel("num_gender_record.xlsx")
+    num_gender_record_df.to_excel(num_writer, "num_gender_record")
 
+    num_writer.save()
 
     print(" ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
@@ -866,21 +870,38 @@ def main():
 
     # output to excel
 
-
     case_level_out_df.to_excel("case_level_out.xlsx")
     case_agency_out_df.to_excel("case_agency_out.xlsx")
-    law_level_out_df.to_excel("law_level_out.xlsx")
-    law_agency_out_df.to_excel("law_agency_out.xlsx")
-    special_agency_out_df.to_excel("special_agency_out.xlsx")
-    special_level_out_df.to_excel("special_level_out.xlsx")
-    case_special_out_df.to_excel("case_special_out.xlsx")
 
-    special_agency_ratio_df.to_excel("special_agency_ratio.xlsx")
-    special_level_ratio_df.to_excel("special_level_ratio.xlsx")
-    case_special_ratio_df.to_excel("case_special_ratio.xlsx")
+    special_agency_writer = pd.ExcelWriter('special_agency_out.xlsx')
+    special_level_writer = pd.ExcelWriter('special_level_out.xlsx')
+    case_special_writer = pd.ExcelWriter('case_special_out.xlsx')
 
-    law_level_ratio_df.to_excel("law_level_ratio.xlsx")
-    law_agency_ratio_df.to_excel("law_agency_ratio_df.xlsx")
+    special_agency_out_df.to_excel(special_agency_writer, "special_agency_out")
+    special_level_out_df.to_excel(special_level_writer, "special_level_out")
+    case_special_out_df.to_excel(case_special_writer, "case_special_out")
+
+    special_agency_ratio_df.to_excel(special_agency_writer, "special_agency_ratio")
+    special_level_ratio_df.to_excel(special_level_writer, "special_level_ratio")
+    case_special_ratio_df.to_excel(case_special_writer, "case_special_ratio")
+
+    special_agency_writer.save()
+    special_level_writer.save()
+    case_special_writer.save()
+
+
+    law_level_writer = pd.ExcelWriter("law_level_out.xlsx")
+    law_agency_writer = pd.ExcelWriter("law_agency_out.xlsx")
+
+
+    law_level_out_df.to_excel(law_level_writer, "law_level_out")
+    law_agency_out_df.to_excel(law_agency_writer, "law_agency_out")
+
+    law_level_ratio_df.to_excel(law_level_writer, "law_level_ratio")
+    law_agency_ratio_df.to_excel(law_agency_writer, "law_agency_ratio")
+
+    law_level_writer.save()
+    law_agency_writer.save()
 
 
     result_df.to_excel("result.xlsx")
