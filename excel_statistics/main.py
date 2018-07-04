@@ -44,7 +44,7 @@ other_law_column_name = default_law_name[4]
 
 
 corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
-criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
+criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?(?:之(\d{1}))?(?:第(\d{1,2})\s*款)?"
 other_law_regex = r"第?(\d{3})\s*(?:條)?"
 
 
@@ -578,13 +578,13 @@ def is_found_in(regex_list, test_str):
 
 
 
-# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
+# {40000 - 70000 || 110000 - 150000} => A , {1200000 - 1340000} => B, { <0 , other} => C
 # Note: Other: 0, National Security: -2, Error: -1, NO_Match : -3
 
 # this is a simple version
 def law_filter(law_key):
 
-    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=120 and law_key <= 134) or (law_key == 213) or (law_key < 0):
+    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=1200000 and law_key <= 1340000) or (law_key == 213) or (law_key < 0):
         return law_key
     else:
         return 0
