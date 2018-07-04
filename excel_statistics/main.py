@@ -44,7 +44,7 @@ other_law_column_name = default_law_name[4]
 
 
 corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
-criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?"
+criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?(?:之(\d{1}))?(?:第(\d{1,2})\s*款)?"
 other_law_regex = r"第?(\d{3})\s*(?:條)?"
 
 
@@ -66,7 +66,7 @@ default_effective_offset = 0
 def sanity_check(target_df, header, check_index_list):
     for index in check_index_list:
         if target_df[header[index]].hasnans:
-            print("[FATAL ERROR]: Sanity Check failed in {}".format(header[index]))
+            print(Fore.RED + Back.YELLOW + "[FATAL ERROR]: Sanity Check failed in {}".format(header[index]))
 
             error_index = 0
             for i in range(0, len(target_df[header[index]])):
@@ -171,13 +171,13 @@ def calculate_case_records(reference_df):
             table[record] += 1
         else:
             if record != "nan" and str(num) == "nan":
-                print("[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
+                print(Fore.YELLOW + "[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
             elif record == "nan" and str(num) == "nan":
                 print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
-                print("[WARNING]: [{}] at index {} not found in the table !".format(record, row_index))
+                print(Fore.RED + "[ERROR]: [{}] at index {} not found in the table !".format(record, row_index))
             else:
-                print("[WARNING]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+                print(Fore.RED + "[ERROR]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -221,12 +221,12 @@ def calculate_people_records(reference_df):
                 level_table[level] += 1
                 gender_table[gender] += 1
             elif name == "nan" and str(reference_df[default_case_name[6]][row_index]) == "nan" and gender == "nan":
-                print("[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
+                print(Fore.YELLOW + "[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
             else:
-                print("[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+                print(Fore.YELLOW + "[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name,row_index)
         except ValueError:
-            print("[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -359,11 +359,11 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
-            print("[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+            print(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -409,11 +409,11 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print("Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                print(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
-            print("[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+            print(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -498,7 +498,7 @@ def extract_agency_info(agencies_regex_list, target_df):
                 break
 
         if error_flag is True:
-            print("[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
+            print(Fore.RED + "[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
             insert_df[agency_column_name][row_index] = -1
 
     
@@ -521,7 +521,7 @@ def extract_special_case_info(target_df):
 
         if input_str == "nan":
             if debug_flag:
-                print("[WARNING] Special Case String is null at index {}".format(row_index))
+                print(Fore.YELLOW + "[WARNING] Special Case String is null at index {}".format(row_index))
 
             continue
 
@@ -532,7 +532,7 @@ def extract_special_case_info(target_df):
         insert_df[special_case_column_name][row_index] = trial
 
         if trial < 0:
-            print("[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
+            print(Fore.RED + "[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
             print_row_data(target_df, default_case_name, row_index)
 
         if debug_flag is True:
@@ -578,13 +578,13 @@ def is_found_in(regex_list, test_str):
 
 
 
-# {400 - 700 || 1000 - 1600} => A , {120 - 134} => B, { <0 , other} => C
+# {40000 - 70000 || 110000 - 150000} => A , {1200000 - 1340000} => B, { <0 , other} => C
 # Note: Other: 0, National Security: -2, Error: -1, NO_Match : -3
 
 # this is a simple version
 def law_filter(law_key):
 
-    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=120 and law_key <= 134) or (law_key == 213) or (law_key < 0):
+    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=1200000 and law_key <= 1340000) or (law_key == 213) or (law_key < 0):
         return law_key
     else:
         return 0
@@ -607,7 +607,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
     for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
         if str(law_df[level_column_name][row_index]) == "nan":
-            print("[WARNING] index {} is null ... skip".format(row_index))
+            print(Fore.YELLOW + "[WARNING] index {} is null ... skip".format(row_index))
             print_row_data(law_df, default_law_name, row_index)
             continue
         #else:
@@ -695,7 +695,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                     print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
                     break
 
-                print("[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
+                print(Fore.RED + "[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
                 print_row_data(law_df, default_law_name, row_index)
                 error_flag = True
 
@@ -713,7 +713,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
         print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
         return default_national_security_key
     elif no_match_flag:
-        print("[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
+        print(Fore.RED + "[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
         print_row_data(law_df, default_law_name, row_index)
         return -3
 
@@ -733,7 +733,7 @@ def main():
     print(__copyright__)
 
     if len(sys.argv) > 2:
-        print("[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
+        print(Fore.RED + "[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
         print("Argument list: {}\n".format(sys.argv))
         print("Program Usage: python [Excel file loaction]")
         return
@@ -762,30 +762,30 @@ def main():
 
     num_writer = pd.ExcelWriter("numbers.xlsx")
 
-    print(" ==== Calculate the number of cases ===== ")
+    print(Back.CYAN + " ==== Calculate the number of cases ===== ")
 
     num_case_record_df = calculate_case_records(raw_df)
     num_case_record_df = append_statistic_cells(num_case_record_df)
     num_case_record_df.to_excel(num_writer, "num_case_record")
 
 
-    print(" ==== Calculate the number of people ===== ")
+    print(Back.CYAN + " ==== Calculate the number of people ===== ")
     num_people_record_df = calculate_case_records(fill_df)
     num_people_record_df = append_statistic_cells(num_people_record_df)
     num_people_record_df.to_excel(num_writer, "num_people_record")
 
-    print(" ==== People Records ===== ")
+    print(Back.CYAN + " ==== People Records ===== ")
     num_gender_record_df = calculate_people_records(fill_df)
     num_gender_record_df = append_statistic_cells(num_gender_record_df)
     num_gender_record_df.to_excel(num_writer, "num_gender_record")
 
     num_writer.save()
 
-    print(" ==== Case Analysis ===== ")
+    print(Back.CYAN + " ==== Case Analysis ===== ")
     case_level_out_df = create_output_dataform("case_row.txt", "level_col.txt")
     case_level_out_df = row_col_analysis(fill_df, case_level_out_df, "case_row.txt", "level_col.txt", default_case_name[1] , default_case_name[6], False)
 
-    print(" ==== Case Analysis Finished =====")
+    print(Back.CYAN + " ==== Case Analysis Finished =====")
 
 
     # print(case_level_out_df)
@@ -811,15 +811,15 @@ def main():
     # create agency df
 
 
-    print(" ==== Agency Analysis ===== ")
+    print(Back.CYAN + " ==== Agency Analysis ===== ")
     case_agency_out_df = create_output_dataform("case_row.txt", "agency_col.txt")
     case_agency_out_df = row_col_analysis(fill_df, case_agency_out_df, "case_row.txt", "agency_col.txt", default_case_name[1], "Agency", False)
 
-    print(" ==== Agency Analysis Finished ===== ")
+    print(Back.CYAN + " ==== Agency Analysis Finished ===== ")
 
 
 
-    print(" ==== Law Analysis ===== ")
+    print(Back.CYAN + " ==== Law Analysis ===== ")
 
 
     # law analysis test
@@ -852,10 +852,10 @@ def main():
     law_agency_out_df, law_agency_ratio_df  = row_col_analysis(result_df, law_agency_out_df, "law_row.txt", "agency_col.txt", "Law", "Agency", True)
 
 
-    print(" ==== Law Analysis Finished ===== ")
+    print(Back.CYAN + " ==== Law Analysis Finished ===== ")
 
 
-    print(" === Special Case Analysis === ")
+    print(Back.CYAN + " === Special Case Analysis === ")
 
     special_agency_out_df = create_output_dataform("special_row.txt", "agency_col.txt")
     special_agency_out_df, special_agency_ratio_df = row_col_analysis(result_df, special_agency_out_df, "special_row.txt", "agency_col.txt", "Special", "Agency", True)
@@ -869,12 +869,12 @@ def main():
 
 
 
-    print(" === Special Case Analysis Finish ===")
+    print(Back.CYAN + " === Special Case Analysis Finish ===")
 
 
 
 
-    print(" ==== Output to Excel ===== ")
+    print(Back.CYAN + " ==== Output to Excel ===== ")
 
     # output to excel
 
@@ -915,7 +915,7 @@ def main():
     result_df.to_excel("result.xlsx")
 
 
-    print(" ==== Output Finished ===== ")
+    print(Back.CYAN + " ==== Output Finished ===== ")
 
         
     print(" -------------- End of the Story --------------")
@@ -932,6 +932,9 @@ def main():
 if __name__ == "__main__":
     try:
         import pandas as pd
+        from colorama import init
+        from colorama import Fore, Back, Style
+        init(autoreset=True)
         main()
     except:
         print(sys.exc_info()[0])
