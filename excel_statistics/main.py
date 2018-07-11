@@ -175,10 +175,11 @@ def calculate_case_records(reference_df):
             elif record == "nan" and str(num) == "nan":
                 print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
             elif record not in table and record != "nan":
-                print(Fore.RED + "[ERROR]: [{}] at index {} not found in the table !".format(record, row_index))
+                raise ValueError(Fore.RED + "[ERROR]: [{}] at index {} not found in the table !".format(record, row_index))
             else:
-                print(Fore.RED + "[ERROR]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name, row_index)
+                raise ValueError(Fore.RED + "[ERROR]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+
 
 
 
@@ -226,7 +227,7 @@ def calculate_people_records(reference_df):
                 print(Fore.YELLOW + "[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name,row_index)
         except ValueError:
-            print(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
 
@@ -359,12 +360,15 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
+                raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
+
 
         except ValueError:
-            print(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
+            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+
+
 
 
     if ratio_flag:
@@ -409,12 +413,13 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
+                raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
 
         except ValueError:
-            print(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
+            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+
 
 
     if reverse_flag:
@@ -501,7 +506,7 @@ def extract_agency_info(agencies_regex_list, target_df):
                 break
 
         if error_flag is True:
-            print(Fore.RED + "[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
+            raise ValueError(Fore.RED + "[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
             insert_df[agency_column_name][row_index] = -1
 
     
@@ -535,7 +540,7 @@ def extract_special_case_info(target_df):
         insert_df[special_case_column_name][row_index] = trial
 
         if trial < 0:
-            print(Fore.RED + "[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
+            raise ValueError(Fore.RED + "[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
             print_row_data(target_df, default_case_name, row_index)
 
         if debug_flag is True:
@@ -586,7 +591,7 @@ default_national_security_key = -2
 
 
 def corruption_law_checker(law_key):
-    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000):
+    if (law_key >= 40101 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000):
         return law_key
     else:
         return -1
