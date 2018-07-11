@@ -644,13 +644,14 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
     no_match_flag = True
     national_security_flag = False
 
-    final_key = int(default_max_key_val)           # tmp number 
+    final_key = int(default_max_key_val)           # tmp number
+
+    nan_count = 0
 
     for i in range(0, len(column_name_list)):
 
         if debug_flag is True:
             print("index: {}, input string:[{}]".format(row_index, str(law_df[column_name_list[i]][row_index])))
-
 
         # kaocc: we should find all the matches here ..
         #law_match = re.search(regex_list[i], str(law_df[column_name_list[i]][row_index]))
@@ -697,9 +698,16 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
             else:
                 if debug_flag:
                     print("[INFO] [{}] has no match in {}".format(str(law_df[column_name_list[i]][row_index]), column_name_list[i]))
+
+                nan_count += 1
         else:
             no_match_flag = False
             break
+
+
+    if nan_count == len(column_name_list):
+        print_row_data(law_df, default_law_name, row_index)
+        print(Fore.RED + "[ERROR] Data at row index {} possess no law records (ALL NaN) !".format(row_index))
 
     
     if error_flag:
