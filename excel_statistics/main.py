@@ -617,8 +617,8 @@ def extract_law_info(law_df, target_df, law_column_name_list):
     
     insert_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
 
-    if debug_flag:
-        insert_raw_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
+    #if debug_flag:
+    #    insert_raw_df = pd.DataFrame(index = target_df.index, columns= [tmp_law_col_name])
 
     # print(insert_df)
 
@@ -637,15 +637,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
             
         insert_df[tmp_law_col_name][row_index] = law_result
 
-        if debug_flag:
-            insert_raw_df[tmp_law_col_name][row_index] = law_result
-
-
-    
     target_df["Law"] = insert_df
-
-    if debug_flag:
-        target_df["Law_Raw"] = insert_raw_df
 
     return target_df
 
@@ -727,7 +719,7 @@ def match_laws(law_df, row_index, regex_list, column_name_list, checker_func_lis
                 break
             else:
                 print_row_data(law_df, default_law_name, row_index)
-                raise ValueError(Fore.RED + "[ERROR] Law at index {} while processing {} is invalid. Law Input: [{}] ".format(row_index, column_name_list[i], str(law_df[column_name_list[i]][row_index])))
+                raise ValueError(Fore.RED + "[ERROR] Law at index {} while processing {} is invalid. Law Input: [{}], Key: {} ".format(row_index, column_name_list[i], str(law_df[column_name_list[i]][row_index]), final_key))
 
 
     if nan_count == len(column_name_list):
