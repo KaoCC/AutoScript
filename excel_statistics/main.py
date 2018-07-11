@@ -136,7 +136,7 @@ def print_row_data(reference_df, col_name_list, row_index):
 def generate_complex_df(reference_df):
 
     complex_df = pd.DataFrame(reference_df, copy = True)
-    complex_df.dropna(thresh = default_case_non_na_count, inplace = True)
+    #complex_df.dropna(thresh = default_case_non_na_count, inplace = True)
     complex_df.fillna(method='ffill', inplace = True)
     complex_df.reset_index(drop = True, inplace = True)
 
@@ -831,7 +831,7 @@ def main():
     law_df.to_excel("law_df.xlsx")
     sanity_check(law_df, default_law_name, [0, 1])
 
-    law_df.dropna(thresh = default_law_non_na_count, inplace = True)
+    #law_df.dropna(thresh = default_law_non_na_count, inplace = True)
     law_df.reset_index(drop = True, inplace = True)
 
     # print(law_df)
