@@ -380,7 +380,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
         return out_df
 
 
-def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label, ratio_flag):
+def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label, ratio_flag, reverse_flag):
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -416,6 +416,9 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
             print(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
 
+
+    if reverse_flag:
+        out_df = out_df.T
 
 
     if ratio_flag:
@@ -879,7 +882,7 @@ def main():
 
     case_special_out_df = create_output_dataform("case_row.txt", "special_row.txt")
     raw_df = extract_special_case_info(raw_df)
-    case_special_out_df, case_special_ratio_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0], True)
+    case_special_out_df, case_special_ratio_df = partial_row_col_analysis(raw_df, case_special_out_df, "case_row.txt", "special_row.txt", default_case_name[1], "Special", default_case_name[0], True, True)
 
 
 
