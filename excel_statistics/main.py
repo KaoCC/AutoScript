@@ -607,12 +607,8 @@ def extract_law_info(law_df, target_df, law_column_name_list):
     for row_index in range(default_effective_offset, law_df[corruption_law_column_name].index.size):
 
         if str(law_df[level_column_name][row_index]) == "nan":
-            print(Fore.YELLOW + "[WARNING] index {} is null ... skip".format(row_index))
             print_row_data(law_df, default_law_name, row_index)
-            continue
-        #else:
-        #    print("Person: {} level: {}".format(law_df[person_column_name][row_index], str(law_df[level_column_name][row_index])))
-
+            raise ValueError(Fore.MAGENTA + "[EXCEPTION] index {} is null ... ".format(row_index))
 
         law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
 
