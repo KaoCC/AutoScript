@@ -575,16 +575,34 @@ def is_found_in(regex_list, test_str):
 
 
 
-
-
+default_national_security_key = -2
 
 # {40000 - 70000 || 110000 - 150000} => A , {1200000 - 1340000} => B, { <0 , other} => C
 # Note: Other: 0, National Security: -2, Error: -1, NO_Match : -3
 
-# this is a simple version
-def law_filter(law_key):
 
-    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000) or (law_key >=1200000 and law_key <= 1340000) or (law_key == 213) or (law_key < 0):
+
+def corruption_law_checker(law_key):
+    if (law_key > 40000 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000):
+        return law_key
+    else:
+        return -1
+
+
+def criminal_law_checker(law_key):
+    if (law_key >=1200000 and law_key <= 1340000):
+        return law_key
+    else:
+        return -1
+
+
+def other_law_checker(law_key):
+
+    # warn
+    if (law_key >=120 and law_key <= 134):
+        print(Fore.YELLOW + "[WARNING]: Law Key {} found in Other cell".format(law_key))
+
+    if (law_key == 213):
         return law_key
     else:
         return 0
@@ -610,14 +628,14 @@ def extract_law_info(law_df, target_df, law_column_name_list):
             print_row_data(law_df, default_law_name, row_index)
             raise ValueError(Fore.MAGENTA + "[EXCEPTION] index {} is null ... ".format(row_index))
 
-        law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list)
+        law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list, [corruption_law_checker, criminal_law_checker, other_law_checker])
 
         if debug_flag:
             print("Result law string: {}".format(law_result))
 
         # filtering and insert to the df
             
-        insert_df[tmp_law_col_name][row_index] = law_filter(law_result)
+        insert_df[tmp_law_col_name][row_index] = law_result
 
         if debug_flag:
             insert_raw_df[tmp_law_col_name][row_index] = law_result
@@ -636,15 +654,15 @@ def extract_law_info(law_df, target_df, law_column_name_list):
 # law matching !
 
 default_max_key_val = 10000000      # tmp value
-default_national_security_key = -2
 
-def match_laws(law_df, row_index, regex_list, column_name_list):
 
-    error_flag = False
+def match_laws(law_df, row_index, regex_list, column_name_list, checker_func_list):
+
     no_match_flag = True
     national_security_flag = False
 
     final_key = int(default_max_key_val)           # tmp number
+    result_key = int(default_max_key_val)
 
     nan_count = 0
 
@@ -691,9 +709,8 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
                     print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
                     break
 
-                print(Fore.RED + "[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
                 print_row_data(law_df, default_law_name, row_index)
-                error_flag = True
+                raise ValueError(Fore.RED + "[ERROR] Data at row index {} causes an error while matching {} ! Data : [{}] ".format(row_index, column_name_list[i] ,str(law_df[column_name_list[i]][row_index])))
 
             else:
                 if debug_flag:
@@ -701,39 +718,41 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
                 nan_count += 1
         else:
-            no_match_flag = False
-            break
+
+            # check if valud ?
+            result_key = checker_func_list[i](final_key)
+
+            if result_key >= 0:
+                no_match_flag = False
+                break
+            else:
+                print_row_data(law_df, default_law_name, row_index)
+                raise ValueError(Fore.RED + "[ERROR] Law at index {} while processing {} is invalid. Law Input: [{}] ".format(row_index, column_name_list[i], str(law_df[column_name_list[i]][row_index])))
 
 
     if nan_count == len(column_name_list):
         print_row_data(law_df, default_law_name, row_index)
-        print(Fore.RED + "[ERROR] Data at row index {} possess no law records (ALL NaN) !".format(row_index))
+        raise ValueError(Fore.RED + "[ERROR] Data at row index {} possess no law records (ALL NaN) !".format(row_index))
 
     
-    if error_flag:
-        return -1
-    elif national_security_flag:
+
+    if national_security_flag:
         print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
         return default_national_security_key
     elif no_match_flag:
-        print(Fore.RED + "[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
         print_row_data(law_df, default_law_name, row_index)
-        return -3
+        raise ValueError(Fore.RED + "[ERROR] Data at row index {} have no matching at all, this might be an Error !".format(row_index))
 
     else:
 
-        return final_key
-
-
-
-
+        return result_key
 
 
 
 # main logic here
 def main():
 
-    print(__copyright__)
+    print(Fore.GREEN + "{}".format(__copyright__))
 
     if len(sys.argv) > 2:
         print(Fore.RED + "[ERROR] : too many arguments ... {} in total".format(len(sys.argv)))
@@ -921,7 +940,7 @@ def main():
     print(Back.CYAN + " ==== Output Finished ===== ")
 
         
-    print(" -------------- End of the Story --------------")
+    print(Fore.GREEN + " -------------- End of the Story --------------")
 
 
     # --- debug ---
