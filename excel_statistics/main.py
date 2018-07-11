@@ -45,7 +45,7 @@ other_law_column_name = default_law_name[4]
 
 corruption_law_regex = r"第([4-6]|1[1-5])\s*條(?:之\d{1})?(?:第(\d{1,2})\s*項)?(?:第(\d{1,2})\s*款)?"
 criminal_law_regex = r"(?:刑法)?第([1-2]\d{2})\s*(?:條)?(?:之(\d{1}))?(?:第(\d{1,2})\s*款)?"
-other_law_regex = r"第?(\d{3})\s*(?:條)?"
+other_law_regex = r"第?(\d{1,3})\s*(?:條)?"
 
 
 
@@ -227,8 +227,9 @@ def calculate_people_records(reference_df):
                 print(Fore.YELLOW + "[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name,row_index)
         except ValueError:
-            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
             print_row_data(reference_df, default_case_name, row_index)
+            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+
 
 
 
