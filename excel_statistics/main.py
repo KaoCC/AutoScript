@@ -414,8 +414,9 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
                 print_row_data(reference_df, default_case_name, row_index)
+                raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
+
 
         except ValueError:
             print_row_data(reference_df, default_case_name, row_index)
@@ -490,9 +491,9 @@ def extract_agency_info(agencies_regex_list, target_df):
 
     for row_index in range(default_effective_offset, target_df[agency_column_name].index.size):
 
-        # print(target_df[row_index])
 
-        error_flag = True
+        match_count = 0
+
         for i in range(0, len(agencies_regex_list)):
             input_str = str(target_df[agency_column_name][row_index])
             found_flag = is_found_in(agencies_regex_list[i], input_str)
@@ -501,17 +502,18 @@ def extract_agency_info(agencies_regex_list, target_df):
                 if debug_flag is True:
                     print("Agency [{}] at index {} Found in {}".format(input_str, row_index, i))
 
-                error_flag = False
+                # error_flag = False
                 insert_df[agency_column_name][row_index] = (i + 1)
+                match_count += 1
 
-                break
+                # break
 
-        if error_flag is True:
-            raise ValueError(Fore.RED + "[ERROR]: Agency [{}] at index {} cannot be found in all the regex lists".format(str(target_df[agency_column_name][row_index]), row_index))
+
+        if match_count != 1:
             insert_df[agency_column_name][row_index] = -1
+            raise ValueError(Fore.RED + "[ERROR]: Agency [{}] at index {} cannot be found or have more than one matches".format(str(target_df[agency_column_name][row_index]), row_index))
 
-    
-    
+
     # print(insert_df)
 
     target_df["Agency"] = insert_df
@@ -541,8 +543,8 @@ def extract_special_case_info(target_df):
         insert_df[special_case_column_name][row_index] = trial
 
         if trial < 0:
-            raise ValueError(Fore.RED + "[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
             print_row_data(target_df, default_case_name, row_index)
+            raise ValueError(Fore.RED + "[ERROR] Error while matching Special Case Regex at index {} !!".format(row_index))
 
         if debug_flag is True:
             print("Special Case at index {} is marked as {}".format(row_index, insert_df[special_case_column_name][row_index]))
