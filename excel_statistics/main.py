@@ -684,12 +684,11 @@ def match_laws(law_df, row_index, regex_list, column_name_list):
 
             # return result
 
-
         if law_match is None:
 
             if (str(law_df[column_name_list[i]][row_index]) != "nan") and str(law_df[column_name_list[i]][row_index]).strip():
 
-                # exception fo national security
+                # check fo national security
                 if re.search("國安", str(law_df[column_name_list[i]][row_index])) is not None:
                     national_security_flag = True
                     print("[INFO] Data at row index {} indicate a national security issue".format(row_index))
