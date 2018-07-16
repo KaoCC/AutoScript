@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 
-# Version 1.1
 # Author: Chih-Chen Kao
 
 import re
