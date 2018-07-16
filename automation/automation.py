@@ -91,7 +91,7 @@ with open("hostlist.txt") as host_data :
                 # process the data
 
 
-                print("[INFO] : Matching Data from Raw Data")
+                print("[INFO] : Matching Regex from Raw Data")
                 matching_list = re.findall(data_regex, read_data)
                 #print(matching_list)
 
