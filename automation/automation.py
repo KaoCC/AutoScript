@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
 
-# Version 1.1
-# Author: Chih-Chen Kao
+
+__author__ = "Chih-Chen Kao"
+__copyright__ = "Copyright (C) 2018, Chih-Chen Kao"
+__license__ = "GPL"
 
 import telnetlib
 import sys
