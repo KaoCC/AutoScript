@@ -28,7 +28,7 @@ effective_regex = r"(\d+\s+(\w\w\w\w\.\w\w\w\w\.\w\w\w\w)\s+DYNAMIC\s+(\w+/\w+/?
 default_mac_query_cmd = b"sh mac address\n"
 
 
-date_str = datetime.datetime.now().strftime ("%Y%m%d")
+date_str = datetime.datetime.now().strftime("%Y%m%d%H")
 
 with open("hostlist.txt") as host_data :
 
