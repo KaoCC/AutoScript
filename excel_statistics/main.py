@@ -597,6 +597,7 @@ def corruption_law_checker(law_key):
     if (law_key >= 40101 and law_key <= 70000) or (law_key >= 110000 and law_key <= 150000):
         return law_key
     else:
+        raise ValueError("corruption law Error with key {}".format(law_key))
         return -1
 
 
@@ -604,6 +605,7 @@ def criminal_law_checker(law_key):
     if (law_key >=1200000 and law_key <= 1340000):
         return law_key
     else:
+        raise ValueError("criminal law Error with key {}".format(law_key))
         return -1
 
 
