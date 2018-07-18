@@ -254,7 +254,7 @@ def calculate_people_records(reference_df):
 
     
     if error_flag:
-        raise ValueError(Fore.RED + "[ERROR]: Please check the following idnexes: {}".format(error_list))
+        raise ValueError(Fore.RED + "[ERROR]: Please check the following idnexes: {}".format(error_index))
 
 
     if debug_flag:
