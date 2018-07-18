@@ -387,7 +387,7 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print_row_data(reference_df, default_case_name, row_index)
+                # print_row_data(reference_df, default_case_name, row_index)
                 raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
 
 
@@ -451,7 +451,7 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                     out_df.at[row_target, col_target] += 1
 
             else:
-                print_row_data(reference_df, default_case_name, row_index)
+                # print_row_data(reference_df, default_case_name, row_index)
                 raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
 
 
@@ -711,7 +711,7 @@ def extract_law_info(law_df, target_df, law_column_name_list):
         try:
 
             if str(law_df[level_column_name][row_index]) == "nan":
-                print_row_data(law_df, default_law_name, row_index)
+                # print_row_data(law_df, default_law_name, row_index)
                 raise ValueError(Fore.MAGENTA + "[EXCEPTION] index {} is null ... ".format(row_index))
 
             law_result = match_laws(law_df, row_index, law_regex_list, law_column_name_list, [corruption_law_checker, criminal_law_checker, other_law_checker])
