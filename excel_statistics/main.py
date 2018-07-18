@@ -219,6 +219,9 @@ def calculate_case_records(reference_df):
 
 def calculate_people_records(reference_df):
 
+    error_flag = False
+    error_list = []
+
     gender_table = {"男" : 0, "女" : 0}
     level_table = {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0}
 
@@ -238,14 +241,20 @@ def calculate_people_records(reference_df):
             elif name == "nan" and str(reference_df[default_case_name[6]][row_index]) == "nan" and gender == "nan":
                 print(Fore.YELLOW + "[WARNING]: Possible invalid data or null at index {}, skipping ...".format(row_index))
             else:
-                print(Fore.YELLOW + "[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
                 print_row_data(reference_df, default_case_name,row_index)
-        except ValueError:
+                print(Fore.YELLOW + "[WARNING]: People at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+
+        except ValueError as val_err:
+            error_index.append(row_index)
             print_row_data(reference_df, default_case_name, row_index)
-            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
+            print(val_err)
+            error_flag = True
+            # raise ValueError(Fore.MAGENTA + "[EXCEPTION]: People at index {} causes an exception, please check manually".format(row_index))
 
 
-
+    
+    if error_flag:
+        raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Please check the following idnexes: {}".format(error_list))
 
 
     if debug_flag:
