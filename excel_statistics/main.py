@@ -194,7 +194,7 @@ def calculate_case_records(reference_df):
 
 
     if error_flag:
-        raise ValueError(Fore.RED + "[ERROR] Check the following indexes: {}".format(error_index))
+        raise ValueError(Fore.MAGENTA + "[EXCEPTION] Check the following indexes: {}".format(error_index))
 
 
     if debug_flag:
@@ -254,7 +254,7 @@ def calculate_people_records(reference_df):
 
     
     if error_flag:
-        raise ValueError(Fore.RED + "[ERROR]: Please check the following idnexes: {}".format(error_index))
+        raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Please check the following indexes: {}".format(error_index))
 
 
     if debug_flag:
