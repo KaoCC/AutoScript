@@ -366,6 +366,9 @@ def append_statistic_cells(out_df):
 
 def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, ratio_flag):
 
+    error_flag = False
+    error_index = []
+
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
     for row_index in range(default_effective_offset, reference_df.index.size):
@@ -388,11 +391,19 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
                 raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
 
 
-        except ValueError:
+        except ValueError as val_err:
+            print(val_err)
+            error_index.append(row_index)
             print_row_data(reference_df, default_case_name, row_index)
-            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+            error_flag = True
+            # raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
 
 
+
+
+    
+    if error_flag:
+        raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Check the following indexes: {}".format(error_index))
 
 
     if ratio_flag:
@@ -409,6 +420,9 @@ def row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label,
 
 
 def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_target_label, col_target_label, partial_target_label, ratio_flag, reverse_flag):
+
+    error_flag = False
+    error_index = []
 
     row_set, col_set = create_row_col_sets(row_file, col_file)
 
@@ -441,10 +455,16 @@ def partial_row_col_analysis(reference_df, out_df, row_file, col_file, row_targe
                 raise ValueError(Fore.RED + "[ERROR] Possible Error found at index {} with data: [{}: {}], [{}: {}]".format(row_index, row_target_label, row_target, col_target_label, col_target))
 
 
-        except ValueError:
+        except ValueError as val_err:
+            print(val_err)
+            error_index.append(row_index)
             print_row_data(reference_df, default_case_name, row_index)
-            raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
+            error_flag = True
+            #raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Data at index {} causes an exception, please check manually".format(row_index))
 
+
+    if error_flag:
+        raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Check the following indexes: {}".format(error_index))
 
 
     if reverse_flag:
