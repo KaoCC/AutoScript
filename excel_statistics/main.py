@@ -220,7 +220,7 @@ def calculate_case_records(reference_df):
 def calculate_people_records(reference_df):
 
     error_flag = False
-    error_list = []
+    error_index = []
 
     gender_table = {"男" : 0, "女" : 0}
     level_table = {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0}
@@ -254,7 +254,7 @@ def calculate_people_records(reference_df):
 
     
     if error_flag:
-        raise ValueError(Fore.MAGENTA + "[EXCEPTION]: Please check the following idnexes: {}".format(error_list))
+        raise ValueError(Fore.RED + "[ERROR]: Please check the following idnexes: {}".format(error_list))
 
 
     if debug_flag:
