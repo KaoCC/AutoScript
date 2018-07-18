@@ -153,6 +153,9 @@ def generate_complex_df(reference_df):
 
 def calculate_case_records(reference_df):
 
+    error_flag = False
+    error_index = []
+
     table = {}
 
     with open("case_row.txt", encoding = 'utf8') as type_file:
@@ -164,23 +167,35 @@ def calculate_case_records(reference_df):
                 table[line.strip().rstrip().strip(u"\ufeff")] = 0
 
     for row_index in range(default_effective_offset, reference_df.index.size):
-        num = reference_df[default_case_name[0]][row_index]
-        record = str(reference_df[default_case_name[1]][row_index])
 
-        if record in table and str(num) != "nan":
-            table[record] += 1
-        else:
-            if record != "nan" and str(num) == "nan":
-                print(Fore.YELLOW + "[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
-            elif record == "nan" and str(num) == "nan":
-                print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
-            elif record not in table and record != "nan":
-                raise ValueError(Fore.RED + "[ERROR]: [{}] at index {} not found in the table !".format(record, row_index))
+        try:
+
+            num = reference_df[default_case_name[0]][row_index]
+            record = str(reference_df[default_case_name[1]][row_index])
+
+            if record in table and str(num) != "nan":
+                table[record] += 1
             else:
-                print_row_data(reference_df, default_case_name, row_index)
-                raise ValueError(Fore.RED + "[ERROR]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+                if record != "nan" and str(num) == "nan":
+                    print(Fore.YELLOW + "[WARNING]: Possible duplication found at index {} : {}".format(row_index, record) )
+                elif record == "nan" and str(num) == "nan":
+                    print("[INFO]: Possibly belong to the prevoius case at index {}".format(row_index) )
+                elif record not in table and record != "nan":
+                    error_index.append(row_index)
+                    raise ValueError(Fore.RED + "[ERROR]: [{}] at index {} not found in the table !".format(record, row_index))
+                else:
+                    error_index.append(row_index)
+                    raise ValueError(Fore.RED + "[ERROR]: Data at index {} have not been recorded due to unknown reasons, please check manually".format(row_index))
+
+        except ValueError as val_error:
+            print_row_data(reference_df, default_case_name, row_index)
+            print(val_error)
+            error_flag = True
 
 
+
+    if error_flag:
+        raise ValueError(Fore.RED + "[ERROR] Check the following indexes: {}".format(error_index))
 
 
     if debug_flag:
@@ -724,8 +739,14 @@ def match_laws(law_df, row_index, regex_list, column_name_list, checker_func_lis
                 nan_count += 1
         else:
 
+
+            try:
+
             # check if valud ?
-            result_key = checker_func_list[i](final_key)
+                result_key = checker_func_list[i](final_key)
+
+            except:
+                result_key = -1
 
             if result_key >= 0:
                 no_match_flag = False
