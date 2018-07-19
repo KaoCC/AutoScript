@@ -114,7 +114,7 @@ def read_records_from_other(tel):
     tel.write(other_password.encode('ascii') + b"\n")
 
     try:
-        data = tel.read_until(b"Taipei_Lan_SW_4F_12", default_read_timeout)
+        data = tel.read_until(b"Taipei_Lan_SW", default_read_timeout)
         print("Data Read ...")
         print(data)
 
@@ -131,7 +131,7 @@ def read_records_from_other(tel):
     while True:
 
         try:
-            (idx, match, reads) = tel.expect([re.compile(b"Taipei_Lan_SW_4F_12")], default_read_timeout)
+            (idx, match, reads) = tel.expect([re.compile(b"Taipei_Lan_SW")], default_read_timeout)
 
             read_data += str(reads.decode("ascii"))
 
