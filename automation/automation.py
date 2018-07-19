@@ -138,7 +138,7 @@ def main():
 
 
                     if skip_count > 0:
-                        print("[INFO] : Number of records being skipped : {}".format(skip_count))
+                        print("[INFO] : Number of records being skipped: {}, Host IP: {}".format(skip_count, host_ip))
 
 
             except KeyboardInterrupt:
