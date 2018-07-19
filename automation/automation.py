@@ -97,7 +97,7 @@ def read_records_from_other(tel):
         print(e)
         return ""
 
-    tel.write(other_user + b"")
+    tel.write(other_user + b"\n")
 
     try:
         data = tel.read_until(other_expected_password, default_read_timeout)
