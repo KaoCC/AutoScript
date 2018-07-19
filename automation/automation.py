@@ -42,6 +42,10 @@ date_str = datetime.datetime.now().strftime("%Y%m%d%H")
 host_input_regex = r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}),(\d{1,3})\s*"
 
 
+mac_trial_regex = r"(\w\w):(\w\w):(\w\w):(\w\w):(\w\w):(\w\w)"
+
+
+
 
 def write_output(read_data, host_ip, up_port, data_regex, effective_regex, group_index_list):
     print("[INFO] : Matching Regex from Raw Data")
@@ -73,7 +77,14 @@ def write_output(read_data, host_ip, up_port, data_regex, effective_regex, group
                 skip_count += 1
                 continue
 
-            result_str = result_list[group_index_list[0]] + ',' + result_list[group_index_list[1]] + ',' + host_ip
+            final_mac = result_list[group_index_list[0]]
+            mac_match = re.match(mac_trial_regex, final_mac)
+
+            if mac_match is not None:
+                final_mac = "{}{}.{}{}.{}{}".format(mac_match[1], mac_match[2], mac_match[3], mac_match[4], mac_match[5], mac_match[6])
+
+
+            result_str = final_mac + ',' + result_list[group_index_list[1]] + ',' + host_ip
             result_file.write(result_str + "\n")
 
     if skip_count > 0:
@@ -249,7 +260,8 @@ def main(host_file_list, function_list, data_regex_list, effective_data_list, gr
                     continue
 
 
-    
+
+# Note: group_index: [mac, port, ip]
 
 if __name__ == "__main__":
     print(__copyright__)
