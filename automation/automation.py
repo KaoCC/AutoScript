@@ -253,7 +253,7 @@ def main(host_file_list, function_list, data_regex_list, effective_data_list, gr
 
 if __name__ == "__main__":
     print(__copyright__)
-    main(["hostlist_a.txt", "hostlist_b.txt"], [read_records_from_cisco, read_records_from_other], [cisco_data_regex, other_data_regex], [cisco_effective_regex, other_data_regex], [[1, 2, 3], [2, 1, 1]])
+    main(["hostlist_cisco.txt", "hostlist_other.txt"], [read_records_from_cisco, read_records_from_other], [cisco_data_regex, other_data_regex], [cisco_effective_regex, other_data_regex], [[1, 2, 3], [2, 1, 1]])
 
     
 
