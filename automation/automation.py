@@ -39,7 +39,7 @@ other_mac_query_cmd = b"sh mac address-table all\n"
 
 date_str = datetime.datetime.now().strftime("%Y%m%d%H")
 
-host_input_regex = r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}),(\d{1,3})\s*"
+host_input_regex = r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}),(\w+(/\w+/?\w*)?)\s*"
 
 
 mac_trial_regex = r"(\w\w):(\w\w):(\w\w):(\w\w):(\w\w):(\w\w)"
@@ -47,7 +47,7 @@ mac_trial_regex = r"(\w\w):(\w\w):(\w\w):(\w\w):(\w\w):(\w\w)"
 
 
 
-def write_output(read_data, host_ip, up_port, data_regex, effective_regex, group_index_list):
+def write_output(read_data, host_ip, up_link, data_regex, effective_regex, group_index_list):
     print("[INFO] : Matching Regex from Raw Data")
     matching_list = re.findall(data_regex, read_data)
     #print(matching_list)
@@ -72,7 +72,7 @@ def write_output(read_data, host_ip, up_port, data_regex, effective_regex, group
     with open("final_result_" + date_str + ".txt", "a", encoding = "ascii") as result_file:
         for result_list in effective_list:
 
-            if int(result_list[group_index_list[2]]) == up_port:
+            if str(result_list[group_index_list[2]]) == up_link:
                 # print("[INFO] : Skipping the record with specific UP Port: {}".format(result_list[1] + ',' + result_list[2]))
                 skip_count += 1
                 continue
@@ -229,9 +229,9 @@ def main(host_file_list, function_list, data_regex_list, effective_data_list, gr
                     raise ValueError("[ERROR] Invalid input found: [{}]. Correct Form: IP,UP_PORT".format(host_str))
 
                 host_ip = host_match[1]
-                up_port = int(host_match[2])
+                up_link = str(host_match[2])
 
-                print("[INFO] : INPUT: Host IP: {}, Up Port: {}".format(host_ip, up_port))
+                print("[INFO] : INPUT: Host IP: {}, Up Port: {}".format(host_ip, up_link))
 
                 try:
                     print("[INFO] : Connecting to {} with timeout set to {}".format(host_ip, default_connection_timeout))
@@ -243,7 +243,7 @@ def main(host_file_list, function_list, data_regex_list, effective_data_list, gr
 
                         # process the data
 
-                        write_output(read_data, host_ip, up_port, data_regex_list[i], effective_data_list[i], group_index_list[i])
+                        write_output(read_data, host_ip, up_link, data_regex_list[i], effective_data_list[i], group_index_list[i])
 
 
                         print("[INFO] : Process completed: [{}]\n".format(host_ip))
@@ -265,7 +265,7 @@ def main(host_file_list, function_list, data_regex_list, effective_data_list, gr
 
 if __name__ == "__main__":
     print(__copyright__)
-    main(["hostlist_cisco.txt", "hostlist_other.txt"], [read_records_from_cisco, read_records_from_other], [cisco_data_regex, other_data_regex], [cisco_effective_regex, other_data_regex], [[1, 2, 3], [2, 1, 1]])
+    main(["hostlist_cisco.txt", "hostlist_other.txt"], [read_records_from_cisco, read_records_from_other], [cisco_data_regex, other_data_regex], [cisco_effective_regex, other_data_regex], [[1, 2, 2], [2, 1, 1]])
 
     
 
