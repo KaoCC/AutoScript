@@ -84,7 +84,8 @@ def main(url):
 
     for i in range(n):
         start = segment_size * i
-        end = start + segment_size - 1
+        effective_size = min(segment_size, file_size - start)
+        end = start + effective_size - 1
         print("Download part {}, start: {}, end : {}".format(i, start, end))
         download_handler(url, start, end, file_name, i)
 
