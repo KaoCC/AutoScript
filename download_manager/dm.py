@@ -21,7 +21,7 @@ def download_handler(url, start, end, filename, part):
 
     print("file: {} START: {}, END: {}".format(segment_file, start, end))
 
-    if start >= end:
+    if start > end:
         print("Already exist")
         return
 
