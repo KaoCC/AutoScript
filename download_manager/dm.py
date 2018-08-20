@@ -88,8 +88,7 @@ def main(url):
 
     if file_size % n != 0:
         print("REM: {}".format(file_size % n))
-        n += 1
-    
+
 
 
     start_time = time.time()
@@ -100,7 +99,10 @@ def main(url):
 
         for i in range(n):
             start = segment_size * i
-            effective_size = min(segment_size, file_size - start)
+            effective_size = segment_size
+
+            if i == n - 1:
+                effective_size += (file_size % n)
             end = start + effective_size - 1
             print("Download part {}, start: {}, end : {}".format(i, start, end))
             # download_handler(url, start, end, file_name, i)
