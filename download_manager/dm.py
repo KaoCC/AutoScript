@@ -9,6 +9,7 @@ import os
 
 import concurrent.futures
 import time
+import click
 
 tmp_dir_prefix = "tmp_"
 
@@ -26,7 +27,7 @@ def download_handler(url, start, end, filename, part):
     #print("file: {} START: {}, END: {}".format(segment_file, start, end))
 
     if start > end:
-        print("Already exist")
+        #print("Already exist")
         return
 
 
@@ -47,6 +48,9 @@ def download_handler(url, start, end, filename, part):
         with open(segment_file, "ab") as download_file:
             for chunk in r.iter_content(chunk_size = 256):
                 download_file.write(chunk)
+
+
+
 
 
 
@@ -109,8 +113,13 @@ def main(url):
 
             futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i))
 
-        for future in concurrent.futures.as_completed(futures_of_downloads):
-            future.result()
+
+        with click.progressbar(concurrent.futures.as_completed(futures_of_downloads), length=n) as bar:
+            for future in bar:
+                future.result()
+
+        #for future in concurrent.futures.as_completed(futures_of_downloads):
+        #    future.result()
 
     # merge files
     tmp_files = []
