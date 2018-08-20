@@ -109,11 +109,6 @@ def main(url):
 
             futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i))
 
-            #download_thread = threading.Thread(target = download_handler, kwargs={'start': start, 'end': end, 'url': url, 'filename': file_name, 'part' : i})
-            #threads.append(download_thread)
-            #download_thread.setDaemon(True)
-            #download_thread.start()
-
         for future in concurrent.futures.as_completed(futures_of_downloads):
             future.result()
 
