@@ -7,6 +7,8 @@ import threading
 import shutil
 import os
 
+import concurrent.futures
+
 
 
 def download_handler(url, start, end, filename, part):
@@ -17,7 +19,7 @@ def download_handler(url, start, end, filename, part):
         previous_download = os.path.getsize(segment_file)
         start += previous_download
     except:
-        print("MISSING PART")
+        print("MISSING PART {}".format(part))
 
     print("file: {} START: {}, END: {}".format(segment_file, start, end))
 
@@ -30,6 +32,7 @@ def download_handler(url, start, end, filename, part):
     headers = {'Range': 'bytes={}-{}'.format(start, end)}
     r = requests.get(url, headers = headers, stream = True)
     print("Download size:{}".format(len(r.content)))
+    # debug
     print(r.headers)
     print(r.status_code)
 
@@ -80,23 +83,28 @@ def main(url):
         n += 1
     
 
-    threads = []
+ 
+    with concurrent.futures.ThreadPoolExecutor() as executor:
 
-    for i in range(n):
-        start = segment_size * i
-        effective_size = min(segment_size, file_size - start)
-        end = start + effective_size - 1
-        print("Download part {}, start: {}, end : {}".format(i, start, end))
-        download_handler(url, start, end, file_name, i)
+        futures_of_downloads = []
 
-        #download_thread = threading.Thread(target = download_handler, kwargs={'start': start, 'end': end, 'url': url, 'filename': file_name, 'part' : i})
-        #threads.append(download_thread)
-        #download_thread.setDaemon(True)
-        #download_thread.start()
+        for i in range(n):
+            start = segment_size * i
+            effective_size = min(segment_size, file_size - start)
+            end = start + effective_size - 1
+            print("Download part {}, start: {}, end : {}".format(i, start, end))
+            # download_handler(url, start, end, file_name, i)
 
-    for tmp_thread in threads:
-        tmp_thread.join()
+            futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i))
 
+
+            #download_thread = threading.Thread(target = download_handler, kwargs={'start': start, 'end': end, 'url': url, 'filename': file_name, 'part' : i})
+            #threads.append(download_thread)
+            #download_thread.setDaemon(True)
+            #download_thread.start()
+
+        for future in concurrent.futures.as_completed(futures_of_downloads):
+            future.result()
 
     # merge files
     tmp_files = []
