@@ -8,20 +8,22 @@ import shutil
 import os
 
 import concurrent.futures
+import time
 
-
+tmp_dir_prefix = "tmp_"
 
 def download_handler(url, start, end, filename, part):
 
-    segment_file = filename + ".part" + str(part)
+    segment_file = os.path.join(tmp_dir_prefix + filename, filename + ".part" + str(part))
 
     try:
         previous_download = os.path.getsize(segment_file)
         start += previous_download
     except:
-        print("MISSING PART {}".format(part))
+        # print("MISSING PART {}".format(part))
+        pass
 
-    print("file: {} START: {}, END: {}".format(segment_file, start, end))
+    #print("file: {} START: {}, END: {}".format(segment_file, start, end))
 
     if start > end:
         print("Already exist")
@@ -29,51 +31,57 @@ def download_handler(url, start, end, filename, part):
 
 
 
-    headers = {'Range': 'bytes={}-{}'.format(start, end)}
-    r = requests.get(url, headers = headers, stream = True)
-    print("Download size:{}".format(len(r.content)))
-    # debug
-    print(r.headers)
-    print(r.status_code)
+    headers = {'Range': 'bytes={}-{}'.format(start, end), 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'}
+    with requests.get(url, headers = headers, stream = True) as r:
+        #print("Download size:{}".format(len(r.content)))
+        # debug
+        #print(r.headers)
+        #print(r.status_code)
 
-    if r.status_code != 206:
-        print("Error !!!!")
-        return
+        if r.status_code != 206 or int(r.headers['Content-Length']) != end - start + 1:
+            print("Get Length: {}".format(r.headers['Content-Length']))
+            print("Error !!!! File: {}".format(segment_file))
+            return
 
-    with open(segment_file, "ab") as download_file:
-        for chunk in r.iter_content(chunk_size = 128):
-            download_file.write(chunk)
+        #print("Write to file [{}]".format(segment_file))
+        with open(segment_file, "ab") as download_file:
+            for chunk in r.iter_content(chunk_size = 256):
+                download_file.write(chunk)
 
 
 
 
 def main(url):
-    r = requests.head(url)
-    if r.status_code != 200:
-        print("Recieved Error Code: " + r.status_code)
-        return
 
-    file_name = url.split('/')[-1]
+    print("URL: {}".format(url))
 
-    print(r.headers)
+    with requests.head(url) as r:
+        if r.status_code != 200:
+            print("Recieved Error Code: " + str(r.status_code))
+            return
 
-    # test
-    if r.headers['Accept-Ranges'] is "none":
-        return
-    else:
-        print(r.headers['Accept-Ranges'])
+        file_name = url.split('/')[-1]
 
-    try:
-        file_size = int(r.headers['content-length'])
+        print(r.headers)
 
-    except:
-        print("Invalid URL")
-        return
+        # test
+        if r.headers['Accept-Ranges'] is "none":
+            print("Do not accept ranges")
+            return
+        else:
+            print("Accept Ranges")
+
+        try:
+            file_size = int(r.headers['content-length'])
+        except:
+            print("Invalid URL")
+            return
 
 
     print("File Name: {}, Total file size: {}".format(file_name, file_size))
+    os.makedirs(tmp_dir_prefix + file_name, exist_ok = True)
 
-    n = 7
+    n = 20
     segment_size = int(file_size / n)
 
     print("seg size: {}".format(segment_size))
@@ -83,6 +91,8 @@ def main(url):
         n += 1
     
 
+
+    start_time = time.time()
  
     with concurrent.futures.ThreadPoolExecutor() as executor:
 
@@ -97,7 +107,6 @@ def main(url):
 
             futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i))
 
-
             #download_thread = threading.Thread(target = download_handler, kwargs={'start': start, 'end': end, 'url': url, 'filename': file_name, 'part' : i})
             #threads.append(download_thread)
             #download_thread.setDaemon(True)
@@ -109,23 +118,33 @@ def main(url):
     # merge files
     tmp_files = []
     for i in range(n):
-        tmp_files.append(file_name + ".part" + str(i))
+        tmp_files.append(os.path.join(tmp_dir_prefix + file_name, file_name + ".part" + str(i)))
 
+    # check file validation here ...
+    # currently missing ..
+
+
+    # merge into one
+    print("Merge into the file: {}".format(file_name))
     with open(file_name, "wb") as fout:
         for tmp_file in tmp_files:
             with open(tmp_file, "rb") as fin : fout.write(fin.read())
     
-    
-
+    print("Time Elapsed: {}".format(time.time() - start_time))
 
 
 if __name__ == "__main__":
     try:
 
-        main("http://fileadmin.cs.lth.se/graphics/research/papers/2016/rayacc/rayacc.pdf")
-        #main("http://williampatino.com/2015/wp-content/uploads/2016/12/William_Patino_Photography_NewZealand_Norwest_Lakes-copy.jpg")
-        #main("http://127.0.0.1:8000/chih-chen-kao_cv_EU_3.pdf")
-        #main("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/640px-Stadtbild_M%C3%BCnchen.jpg")
+        with open("hosts.txt") as input_file:
+
+            for url in input_file:
+
+                main(url.rstrip())
+                #main("http://williampatino.com/2015/wp-content/uploads/2016/12/William_Patino_Photography_NewZealand_Norwest_Lakes-copy.jpg")
+                #main("http://127.0.0.1:8000/chih-chen-kao_cv_EU_3.pdf")
+                #main("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/640px-Stadtbild_M%C3%BCnchen.jpg")
+                # http://fileadmin.cs.lth.se/graphics/research/papers/2016/rayacc/rayacc.pdf
 
     except:
         print(sys.exc_info()[0])
