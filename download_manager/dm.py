@@ -13,13 +13,16 @@ import click
 
 tmp_dir_prefix = "tmp_"
 
-def download_handler(url, start, end, filename, part):
+def download_handler(url, start, end, filename, part, bar):
 
     segment_file = os.path.join(tmp_dir_prefix + filename, filename + ".part" + str(part))
 
     try:
         previous_download = os.path.getsize(segment_file)
         start += previous_download
+
+        bar.update(previous_download)
+
     except:
         # print("MISSING PART {}".format(part))
         pass
@@ -40,14 +43,17 @@ def download_handler(url, start, end, filename, part):
         #print(r.status_code)
 
         if r.status_code != 206 or int(r.headers['Content-Length']) != end - start + 1:
-            print("Get Length: {}".format(r.headers['Content-Length']))
-            print("Error !!!! File: {}".format(segment_file))
+            print("Error !!!! Code: {}, Length: {}".format(r.status_code, r.headers['Content-Length']))
+            print("File: {}".format(segment_file))
             return
 
         #print("Write to file [{}]".format(segment_file))
         with open(segment_file, "ab") as download_file:
-            for chunk in r.iter_content(chunk_size = 256):
+            for chunk in r.iter_content(chunk_size = 1024):
                 download_file.write(chunk)
+
+                # Warning: we may need lock here
+                bar.update(1024)
 
 
 
@@ -85,7 +91,7 @@ def main(url):
     print("File Name: {}, Total file size: {}".format(file_name, file_size))
     os.makedirs(tmp_dir_prefix + file_name, exist_ok = True)
 
-    n = 20
+    n = 50
     segment_size = int(file_size / n)
 
     print("seg size: {}".format(segment_size))
@@ -97,29 +103,33 @@ def main(url):
 
     start_time = time.time()
  
+    print("Download Start")
     with concurrent.futures.ThreadPoolExecutor() as executor:
 
         futures_of_downloads = []
 
-        for i in range(n):
-            start = segment_size * i
-            effective_size = segment_size
+        # Warning: Need lock !
+        with click.progressbar(length=file_size, label='(File: {})'.format(file_name)) as bar:
 
-            if i == n - 1:
-                effective_size += (file_size % n)
-            end = start + effective_size - 1
-            print("Download part {}, start: {}, end : {}".format(i, start, end))
-            # download_handler(url, start, end, file_name, i)
+            for i in range(n):
+                start = segment_size * i
+                effective_size = segment_size
 
-            futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i))
+                if i == n - 1:
+                    effective_size += (file_size % n)
+                end = start + effective_size - 1
+                #print("Download part {}, start: {}, end : {}".format(i, start, end))
+                # download_handler(url, start, end, file_name, i)
+
+                futures_of_downloads.append(executor.submit(download_handler, url, start, end, file_name, i, bar))
 
 
-        with click.progressbar(concurrent.futures.as_completed(futures_of_downloads), length=n) as bar:
-            for future in bar:
+            #with click.progressbar(concurrent.futures.as_completed(futures_of_downloads), length=n, label='(File: {})'.format(file_name)) as bar:
+            #    for future in bar:
+            #        future.result()
+
+            for future in concurrent.futures.as_completed(futures_of_downloads):
                 future.result()
-
-        #for future in concurrent.futures.as_completed(futures_of_downloads):
-        #    future.result()
 
     # merge files
     tmp_files = []
