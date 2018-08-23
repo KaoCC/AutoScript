@@ -157,8 +157,8 @@ if __name__ == "__main__":
         with open("hosts.txt") as input_file:
 
             for url in input_file:
-
-                main(url.rstrip())
+                if url.strip():
+                    main(url.rstrip())
                 #main("http://williampatino.com/2015/wp-content/uploads/2016/12/William_Patino_Photography_NewZealand_Norwest_Lakes-copy.jpg")
                 #main("http://127.0.0.1:8000/chih-chen-kao_cv_EU_3.pdf")
                 #main("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/640px-Stadtbild_M%C3%BCnchen.jpg")
