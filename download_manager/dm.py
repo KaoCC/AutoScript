@@ -65,6 +65,8 @@ def main(url):
 
     print("URL: {}".format(url))
 
+    n = 50
+
     with requests.head(url) as r:
         if r.status_code != 200:
             print("Recieved Error Code: " + str(r.status_code))
@@ -75,11 +77,11 @@ def main(url):
         print(r.headers)
 
         # test
-        if r.headers['Accept-Ranges'] is "none":
-            print("Do not accept ranges")
-            return
+        if 'Accept-Ranges' not in r.headers or r.headers['Accept-Ranges'] is "none":
+            print("The server not accept ranges, set n to 1")
+            n = 1
         else:
-            print("Accept Ranges")
+            print("Accept Ranges, n = {}".format(n))
 
         try:
             file_size = int(r.headers['content-length'])
@@ -91,19 +93,19 @@ def main(url):
     print("File Name: {}, Total file size: {}".format(file_name, file_size))
     os.makedirs(tmp_dir_prefix + file_name, exist_ok = True)
 
-    n = 50
+
     segment_size = int(file_size / n)
 
     print("seg size: {}".format(segment_size))
 
     if file_size % n != 0:
-        print("REM: {}".format(file_size % n))
+        print("remain: {}".format(file_size % n))
 
 
 
     start_time = time.time()
  
-    print("Download Start")
+    print("Start Downloading")
     with concurrent.futures.ThreadPoolExecutor() as executor:
 
         futures_of_downloads = []
