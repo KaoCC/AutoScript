@@ -1031,10 +1031,11 @@ def main():
     law_agency_writer.save()
 
 
-    extra_df = create_raw_df(target_file, default_sheet_name, [13], ["職務名稱"])
-    sanity_check(extra_df, ["職務名稱"], [0])
+    extra_df = create_raw_df(target_file, default_sheet_name, [13, 15], ["職務名稱", "被告之服務機關"])
+    sanity_check(extra_df, ["職務名稱", "被告之服務機關"], [0, 1])
     
-    result_df["職務名稱"] = extra_df
+    result_df["職務名稱"] = extra_df["職務名稱"]
+    result_df["被告之服務機關"] = extra_df["被告之服務機關"]
 
     result_df.to_excel("result.xlsx")
 
