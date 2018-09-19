@@ -1,48 +1,124 @@
-
 <!DOCTYPE html>
 <html>
+
 <head>
 
-<h1>Hello {{ name }}!</h1>
+	<h1>Hello {{ name }}!</h1>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-<script type="text/javascript">
-// setup some JSON to use
-var cars = [
-	{ "make":"Porsche", "model":"911S" },
-	{ "make":"Mercedes-Benz", "model":"220SE" },
-	{ "make":"Jaguar","model": "Mark VII" }
-];
+	<script xmlns="http://www.w3.org/1999/xhtml" async="" src="https://cdn.rawgit.com/eligrey/FileSaver.js/5ed507ef8aa53d8ecfea96d96bc7214cd2476fd2/FileSaver.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script type="text/javascript">
+		// setup some JSON to use
+		var cars = [
+			{ "make": "Porsche", "model": "911S" },
+			{ "make": "Mercedes-Benz", "model": "220SE" },
+			{ "make": "Jaguar", "model": "Mark VII" }
+		];
 
-window.onload = function() {
-	// setup the button click
-	document.getElementById("theButton").onclick = function() {
-		doWork()
-	};
-}
+		window.onload = function () {
+			// setup the button click
+			document.getElementById("theButton").onclick = function () {
+				doWork()
+			};
 
-function doWork() {
-	// ajax the JSON to the server
-	$.post("receiver",  JSON.stringify(cars), function(result){
-		$("#test1").html(result);
-	});
-	// stop link reloading the page
- event.preventDefault();
-}
-</script>
+
+			$("button#sendNames").on("click", function () {
+				// $("textarea#names").val("Hello There")
+				send_names()
+			});
+
+
+		}
+
+		function doWork() {
+			// ajax the JSON to the server
+			$.post("receiver", JSON.stringify(cars), function (result) {
+				$("#test1").html("result");
+			});
+			// stop link reloading the page
+			event.preventDefault();
+		}
+
+
+		function send_names() {
+			event.preventDefault();
+
+			var lines = $("textarea#names").val().split(/\n|\r/);
+
+			var texts = [];
+			for (var i = 0; i < lines.length; i++) {
+				if (/\S/.test(lines[i])) {
+					texts.push($.trim(lines[i]));
+				}
+			}
+
+
+			$.ajaxSetup({
+  beforeSend:function(jqXHR, settings){
+    if (settings.dataType === 'binary'){
+      settings.xhr().responseType='arraybuffer';
+      settings.processData=false;
+    }
+  }
+})
+
+			$.ajax({
+				type: 'POST',
+				url: "nametag",
+				data: JSON.stringify(texts),
+				success: function (response, status, xhr) {
+					$("#test2").html("File Downloaded!")
+
+					    console.log(response); //ArrayBuffer
+    					console.log(new Blob([response])) // Blob
+
+					var filename = "";
+					var disposition = xhr.getResponseHeader('Content-Disposition');
+					if (disposition && disposition.indexOf('attachment') !== -1) {
+						var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+						var matches = filenameRegex.exec(disposition);
+						if (matches != null && matches[1]) {
+							filename = matches[1].replace(/['"]/g, '');
+						}
+					}
+
+					var blob = new Blob([response], {type: "application/zip"});
+
+					saveAs(blob, filename);
+				}
+			})
+
+		}
+
+
+	</script>
+
+
 
 
 </head>
+
 <body>
 
 
-<p id="test1">This is a <b>bold</b> paragraph.</p>
-	
-This will send data using AJAX to Python:<br /><br />
-<button id="theButton">Click Me</button>
+	Names:<br>
+	<textarea id="names">
+
+</textarea><br /><br />
+
+	<button id="sendNames">Send</button><br />
+
+	<p id="test2">This is another <b>bold</b> paragraph.</p>
+
+
+	<p id="test1">This is a <b>bold</b> paragraph.</p>
+
+	This will send data using AJAX to Python:<br /><br />
+	<button id="theButton">Click Me</button>
 
 
 
 
 </body>
+
 </html>
