@@ -35,23 +35,23 @@ def read_name():
     data = request.get_json(force = True)
     # print("[{}]".format(data))
 
-    result = ''
+    # result = ''
 
     name_list = []
 
     for line in data:
         print(line)
-        result += "[{}]".format(line)
+        # result += "[{}]".format(line)
         name_list.append(line)
 
 
     template_str = ""
 
-    with open("template.xml", "r", encoding = 'utf8') as template_file:
+    with open("word_template.xml", "r", encoding = 'utf8') as template_file:
         template_str = template_file.read()
 
     for name in name_list:
-        print(name)
+        # print(name)
         tmp_template_str = template_str
         current_str = tmp_template_str.replace("AAC_USER_NAME", name)
 

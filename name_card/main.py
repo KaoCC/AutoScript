@@ -22,7 +22,7 @@ def main():
 
     template_str = ""
 
-    with open("template.xml", "r", encoding = 'utf8') as template_file:
+    with open("word_template.xml", "r", encoding = 'utf8') as template_file:
         template_str = template_file.read()
 
     # print(template_str)
