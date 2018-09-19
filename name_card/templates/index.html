@@ -53,24 +53,27 @@
 			}
 
 
-			$.ajaxSetup({
-  beforeSend:function(jqXHR, settings){
-    if (settings.dataType === 'binary'){
-      settings.xhr().responseType='arraybuffer';
-      settings.processData=false;
-    }
-  }
-})
+			/*$.ajaxSetup({
+				beforeSend: function (jqXHR, settings) {
+					if (settings.dataType === 'binary') {
+						settings.xhr().responseType = 'arraybuffer';
+						settings.processData = false;
+					}
+				}
+			}) */
 
 			$.ajax({
 				type: 'POST',
 				url: "nametag",
 				data: JSON.stringify(texts),
+				xhrFields: {
+					responseType: 'blob'
+				},
 				success: function (response, status, xhr) {
 					$("#test2").html("File Downloaded!")
 
-					    console.log(response); //ArrayBuffer
-    					console.log(new Blob([response])) // Blob
+					console.log(response); //ArrayBuffer
+					console.log(new Blob([response])) // Blob
 
 					var filename = "";
 					var disposition = xhr.getResponseHeader('Content-Disposition');
@@ -82,7 +85,7 @@
 						}
 					}
 
-					var blob = new Blob([response], {type: "application/zip"});
+					var blob = new Blob([response], { type: "application/zip" });
 
 					saveAs(blob, filename);
 				}
@@ -103,6 +106,10 @@
 
 	Names:<br>
 	<textarea id="names">
+
+
+
+
 
 </textarea><br /><br />
 
