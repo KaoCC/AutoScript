@@ -31,7 +31,7 @@ def main():
         print(name)
         current_str = template_str.replace("AAC_USER_NAME", name)
 
-        with open(name + ".xml", "w", encoding = 'utf8') as output_xml:
+        with open(name + ".doc", "w", encoding = 'utf8') as output_xml:
             output_xml.write(current_str)
 
     print("Total: {}".format(len(name_list)))
