@@ -4,6 +4,9 @@ A set of handy scripts that helps to automate routine tasks.
 
 ----
 
+## Name Card Crafting
+
+This is implemented in the form of a website
 
 ## Excel
 
