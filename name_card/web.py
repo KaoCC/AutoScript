@@ -54,10 +54,22 @@ def read_name():
         with open("word_template.xml", "r", encoding = 'utf8') as template_file:
             template_str = template_file.read()
 
+        with open("template_title.xml", "r", encoding = 'utf8') as template_file:
+            template_title_str = template_file.read()
+
         for name in name_list:
             # print(name)
-            tmp_template_str = template_str
-            current_str = tmp_template_str.replace("AAC_USER_NAME", name)
+
+            current_str = str()
+
+            index = name.find("#")
+            if index != -1:
+                tmp_template_str = template_title_str
+                current_str = tmp_template_str.replace("AAC_USER_NAME", name[index + 1:]).replace("AAC_USER_TITLE", name[:index])
+            else:
+
+                tmp_template_str = template_str
+                current_str = tmp_template_str.replace("AAC_USER_NAME", name)
 
             with open(name + ".doc", "w", encoding = 'utf8') as output_xml:
                 output_xml.write(current_str)
