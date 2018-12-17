@@ -108,6 +108,7 @@ def main():
 if __name__ == "__main__":
 
     try:
+        print(__copyright__)
         main()
 
     except:
