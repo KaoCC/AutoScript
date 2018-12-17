@@ -87,7 +87,7 @@ def remove_photos():
 sched = BlockingScheduler()
 sched.add_job(remove_photos, 'cron', day_of_week = 'mon-fri', hour = 6)
 
-sched.add_job(remove_photos, 'interval', seconds = 10)
+# sched.add_job(remove_photos, 'interval', seconds = 10)
 
 
 
